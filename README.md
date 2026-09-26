@@ -1,4 +1,4 @@
-# DentaCore — Dental Practice Management Portal
+# DentaCore — Dental Management Portal
 
 
 **DentaCore** is a modern, clinical-grade dental practice management platform built on **.NET 9** following **Clean Architecture** principles. It streamlines the full patient visit lifecycle: doctor schedule browsing, real-time 30-minute slot availability, appointment approvals, clinical diagnosis recording, QuestPDF receipt generation, live payment settlement with instant patient notifications, and an automated tamper-evident audit trail.
@@ -8,6 +8,7 @@
 ## Table of Contents
 
 - [System Architecture](#system-architecture)
+- [Entity Relationship Diagram (ERD)](#entity-relationship-diagram-erd)
 - [Project Structure](#project-structure)
 - [Key Features by Role](#key-features-by-role)
 - [Appointment & Billing Lifecycle](#appointment--billing-lifecycle)
@@ -45,6 +46,156 @@ graph TD
 
 ---
 
+## Entity Relationship Diagram (ERD)
+
+The data model enforces relational integrity, Clean Architecture domain isolation, and comprehensive auditability across the clinical practice workflow:
+
+```mermaid
+erDiagram
+    USERS ||--o{ REFRESH_TOKENS : has
+    USERS ||--o| DOCTORS : "is a"
+    USERS ||--o| PATIENTS : "is a"
+    USERS ||--o| ADMINS : "is a"
+    DOCTORS ||--o{ APPOINTMENTS : approves
+    PATIENTS ||--o{ APPOINTMENTS : books
+    APPOINTMENTS ||--o| RECEIPTS : generates
+    APPOINTMENTS ||--o{ DIAGNOSES : has
+    APPOINTMENTS ||--o{ AUDIT_LOGS : tracked_by
+    PATIENTS ||--o{ AUDIT_LOGS : tracked_by
+    RECEIPTS ||--o| PAYMENTS : "paid via"
+    DOCTORS ||--o{ DOCTOR_SCHEDULES : defines
+    USERS ||--o{ NOTIFICATIONS : receives
+
+    USERS {
+        guid Id PK
+        string FullName
+        string Email UK
+        string PhoneNumber
+        string PasswordHash
+        string Role "Admin|Doctor|Patient"
+        bool EmailConfirmed
+        bool IsActive
+        datetime CreatedAt
+        datetime UpdatedAt
+    }
+
+    PATIENTS {
+        guid Id PK
+        guid UserId FK
+        date DateOfBirth
+        string Gender
+        string Address
+        string BloodGroup
+        string MedicalHistory
+        string EmergencyContact
+    }
+
+    DOCTORS {
+        guid Id PK
+        guid UserId FK
+        string Specialization
+        string LicenseNumber
+        int ExperienceYears
+        string Bio
+        decimal ConsultationFee
+        bool IsApprovedByAdmin
+    }
+
+    ADMINS {
+        guid Id PK
+        guid UserId FK
+        string Designation
+    }
+
+    DOCTOR_SCHEDULES {
+        guid Id PK
+        guid DoctorId FK
+        string DayOfWeek
+        time StartTime
+        time EndTime
+        int SlotDurationMinutes
+        bool IsActive
+    }
+
+    APPOINTMENTS {
+        guid Id PK
+        guid PatientId FK
+        guid DoctorId FK
+        datetime RequestedDateTime
+        datetime ConfirmedDateTime
+        string Status "Pending|Approved|Rejected|Rescheduled|Completed|Cancelled"
+        string ReasonForVisit
+        string RejectionReason
+        datetime CreatedAt
+        datetime UpdatedAt
+    }
+
+    DIAGNOSES {
+        guid Id PK
+        guid AppointmentId FK
+        string DiseaseName
+        string Notes
+        string Prescription
+        datetime CreatedAt
+    }
+
+    RECEIPTS {
+        guid Id PK
+        guid AppointmentId FK
+        string ReceiptNumber UK
+        decimal Amount
+        string PaymentStatus "Pending|Paid|Refunded"
+        string PdfFilePath
+        datetime GeneratedAt
+    }
+
+    PAYMENTS {
+        guid Id PK
+        guid ReceiptId FK
+        decimal AmountPaid
+        string PaymentMethod "Cash|Card|Online"
+        string TransactionRef
+        datetime PaidAt
+        guid UpdatedByDoctorId FK
+    }
+
+    AUDIT_LOGS {
+        guid Id PK
+        guid UserId FK
+        string Action
+        string EntityName
+        guid EntityId
+        string OldValue
+        string NewValue
+        string IpAddress
+        datetime CreatedAt
+    }
+
+    NOTIFICATIONS {
+        guid Id PK
+        guid UserId FK
+        string Title
+        string Message
+        bool IsRead
+        datetime CreatedAt
+    }
+
+    REFRESH_TOKENS {
+        guid Id PK
+        guid UserId FK
+        string Token
+        datetime ExpiresAt
+        bool IsRevoked
+    }
+```
+
+### Entity Relationship Design Highlights
+- **Normalized Authentication & Profiles**: `Users` is the unified security identity table (managing email, password hashes, and roles). `Patients`, `Doctors`, and `Admins` are 1:1 profile extension tables, ensuring identity concerns are decoupled from medical and professional profiles.
+- **Automated Audit Logs**: `AuditLogs` captures serialized `OldValue` and `NewValue` snapshots for state mutations across appointments, medical diagnoses, users, receipts, and payments.
+- **Separation of Invoices & Payments**: An appointment approval generates a `Receipt` with an initial `Pending` status. Actual financial settlement is recorded in `Payments`, allowing future support for partial settlements, split payment methods, or refund auditing without altering appointment data.
+
+---
+
 ## Project Structure
 
 ```
@@ -53,7 +204,6 @@ DentaCore/
 ├── .env                              # Environment secrets (gitignored)
 ├── .env.example                      # Template environment variables
 ├── .gitignore                        # Git ignore rules for .NET & SQLite
-├── dentacore_implementation_plan.md   # Architectural design blueprint
 │
 ├── src/
 │   ├── DentaCore.Domain/             # Pure domain entities & enums
