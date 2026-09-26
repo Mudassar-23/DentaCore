@@ -1,0 +1,6 @@
+@DentaCore.API_HostAddress = http://localhost:5105
+
+GET {{DentaCore.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,586 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Patient Portal — DentaCore</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#x1F9B7;</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;1,500&family=Inter:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --white:#FFFFFF; --off:#F8FAFC; --panel:#FFFFFF; --green:#1F8A55; --deep:#14532D;
+  --ink:#0F172A; --soft:#64748B; --border:#E2E8F0; --amber:#D97706; --red:#DC2626;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:'Inter',sans-serif; color:var(--ink); background:#F1F5F9; min-height:100vh;}
+h1,h2,h3,h4{font-family:'Fraunces',serif; font-weight:500;}
+.mono{font-family:'Space Mono',monospace;}
+a{color:inherit; text-decoration:none;}
+
+/* Top Nav */
+header{background:#fff; border-bottom:1px solid var(--border); padding:14px 28px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:40;}
+.logo{font-family:'Fraunces',serif; font-size:20px; font-weight:500; display:flex; align-items:center; gap:6px;}
+.logo span{color:var(--green);}
+.user-bar{display:flex; align-items:center; gap:16px;}
+.user-badge{font-size:13px; font-weight:600; color:var(--deep); background:#DCFCE7; padding:4px 10px; border-radius:20px;}
+.btn-logout{font-size:12px; font-weight:600; color:var(--soft); border:1px solid var(--border); padding:6px 12px; border-radius:6px; background:#fff; cursor:pointer;}
+.btn-logout:hover{background:#F8FAFC; color:var(--red); border-color:#FECACA;}
+
+/* Layout */
+.container{max-width:1160px; margin:28px auto; padding:0 20px;}
+.tabs-nav{display:flex; gap:10px; margin-bottom:24px; border-bottom:1px solid var(--border); padding-bottom:12px;}
+.tab-link{padding:8px 18px; border-radius:6px; font-size:14px; font-weight:600; color:var(--soft); cursor:pointer; background:transparent; border:none; transition:all .15s;}
+.tab-link.active{background:var(--deep); color:#fff;}
+
+/* Panels */
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+.card{background:#fff; border:1px solid var(--border); border-radius:10px; padding:24px; box-shadow:0 2px 4px rgba(0,0,0,0.02); margin-bottom:20px;}
+.card-title{font-size:20px; margin-bottom:16px; color:var(--ink); display:flex; justify-content:space-between; align-items:center;}
+
+/* Grid for booking */
+.booking-grid{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+.doc-card{border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:12px; cursor:pointer; transition:border-color .15s, box-shadow .15s;}
+.doc-card:hover{border-color:var(--green); box-shadow:0 4px 12px rgba(31,138,85,0.08);}
+.doc-card.selected{border-color:var(--green); background:#F0FDF4; box-shadow:0 0 0 2px var(--green);}
+.doc-name{font-size:16px; font-weight:600;}
+.doc-spec{font-size:13px; color:var(--green); font-weight:500; margin-top:2px;}
+.doc-fee{font-size:13px; font-weight:700; color:var(--deep); margin-top:6px;}
+
+/* Slot Pills */
+.slots-container{display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 20px;}
+.slot-pill{padding:8px 12px; border-radius:6px; font-size:12px; font-weight:600; border:1px solid var(--border); background:#fff; cursor:pointer; font-family:'Space Mono',monospace;}
+.slot-pill:hover{border-color:var(--green); color:var(--green);}
+.slot-pill.selected{background:var(--deep); color:#fff; border-color:var(--deep);}
+.slot-pill.disabled{opacity:0.4; cursor:not-allowed; background:#f1f5f9; text-decoration:line-through;}
+
+/* Badges */
+.badge{display:inline-block; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase;}
+.badge-pending{background:#FEF3C7; color:#B45309;}
+.badge-approved{background:#E0E7FF; color:#4338CA;}
+.badge-completed{background:#DCFCE7; color:#15803D;}
+.badge-rejected{background:#FEE2E2; color:#B91C1C;}
+.badge-cancelled{background:#F1F5F9; color:#64748B;}
+.badge-paid{background:#1F8A55; color:#fff; box-shadow:0 2px 6px rgba(31,138,85,0.3);}
+
+/* Table */
+table{width:100%; border-collapse:collapse; text-align:left; font-size:14px;}
+th, td{padding:12px 14px; border-bottom:1px solid var(--border);}
+th{background:#F8FAFC; color:var(--soft); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;}
+
+.btn{display:inline-block; padding:8px 14px; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; border:none; text-align:center;}
+.btn-primary{background:var(--deep); color:#fff;}
+.btn-primary:hover{background:#166534;}
+.btn-sm{padding:5px 10px; font-size:12px;}
+.btn-outline{background:#fff; border:1px solid var(--border); color:var(--ink);}
+.btn-outline:hover{background:#F8FAFC; border-color:var(--soft);}
+.btn-danger{background:#FEE2E2; color:#B91C1C; border:1px solid #FECACA;}
+.btn-danger:hover{background:#FCA5A5;}
+
+.alert{padding:12px 16px; border-radius:8px; font-size:13px; margin-bottom:18px; display:none;}
+.alert-success{background:#F0FDF4; border:1px solid #BBF7D0; color:#15803D;}
+.alert-error{background:#FEF2F2; border:1px solid #FECACA; color:#B91C1C;}
+
+@media(max-width:860px){
+  .booking-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><a href="../index.html"><span>◐</span> DentaCore</a></div>
+  <div class="user-bar">
+    <div id="patientGreet" style="font-size:14px; font-weight:500;">Welcome, Patient</div>
+    <span class="user-badge">PATIENT</span>
+    <button class="btn-logout" onclick="logout()">Sign Out</button>
+  </div>
+</header>
+
+<div class="container">
+  <div id="statusAlert" class="alert"></div>
+
+  <div class="tabs-nav">
+    <button class="tab-link active" onclick="switchTab('booking')">📅 Book Appointment</button>
+    <button class="tab-link" onclick="switchTab('appointments')">📋 My Appointments</button>
+    <button class="tab-link" onclick="switchTab('receipts')">💳 Invoices & Receipts</button>
+    <button class="tab-link" onclick="switchTab('profile')">👤 Health Profile</button>
+  </div>
+
+  <!-- TAB 1: BOOK APPOINTMENT -->
+  <div id="tab-booking" class="tab-content active">
+    <div class="booking-grid">
+      <!-- Left: Pick Doctor -->
+      <div class="card">
+        <h3 class="card-title">1. Choose Attending Doctor</h3>
+        <p style="font-size:13px; color:var(--soft); margin-bottom:16px;">Select an approved specialist for your consultation.</p>
+        <div id="doctorList">Loading available doctors...</div>
+      </div>
+
+      <!-- Right: Pick Slot & Confirm -->
+      <div class="card">
+        <h3 class="card-title">2. Select Date & Slot</h3>
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Consultation Date</label>
+          <input type="date" id="bookingDate" onchange="loadDoctorAvailability()" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; font-size:14px;">
+        </div>
+
+        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Available 30-min Slots</label>
+        <div id="slotsBox" class="slots-container">
+          <p style="font-size:13px; color:var(--soft);">Please select a doctor and date first.</p>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Reason for Visit / Symptoms</label>
+          <textarea id="bookingReason" rows="3" placeholder="Describe toothache, cleaning request, or consultation reason..." style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; font-size:14px; font-family:'Inter',sans-serif;"></textarea>
+        </div>
+
+        <button class="btn btn-primary" style="width:100%; padding:12px;" onclick="submitBooking()" id="btnBook">Request Appointment Slot</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: MY APPOINTMENTS -->
+  <div id="tab-appointments" class="tab-content">
+    <div class="card">
+      <div class="card-title">
+        <span>My Visit Queue & Status</span>
+        <button class="btn btn-outline btn-sm" onclick="loadMyAppointments()">↻ Refresh</button>
+      </div>
+      <div id="appointmentsTableContainer">Loading appointments...</div>
+    </div>
+  </div>
+
+  <!-- TAB 3: INVOICES & RECEIPTS -->
+  <div id="tab-receipts" class="tab-content">
+    <div class="card">
+      <div class="card-title">
+        <span>Receipts & Settled Invoices</span>
+        <button class="btn btn-outline btn-sm" onclick="loadMyReceipts()">↻ Refresh</button>
+      </div>
+      <div id="receiptsTableContainer">Loading receipts...</div>
+    </div>
+  </div>
+
+  <!-- TAB 4: PROFILE -->
+  <div id="tab-profile" class="tab-content">
+    <div class="card" style="max-width:640px;">
+      <h3 class="card-title">Personal Medical Profile</h3>
+      <form onsubmit="saveProfile(event)">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+          <div>
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Full Name</label>
+            <input type="text" id="profName" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px;">
+          </div>
+          <div>
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Phone</label>
+            <input type="text" id="profPhone" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px;">
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+          <div>
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Date of Birth</label>
+            <input type="date" id="profDob" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px;">
+          </div>
+          <div>
+            <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Blood Group</label>
+            <input type="text" id="profBlood" placeholder="e.g. O+, A+" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px;">
+          </div>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Home Address</label>
+          <input type="text" id="profAddress" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px;">
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Medical History / Allergies</label>
+          <textarea id="profHistory" rows="3" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; font-family:'Inter',sans-serif;"></textarea>
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Emergency Contact</label>
+          <input type="text" id="profEmergency" placeholder="Name & Phone Number" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px;">
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="btnSaveProfile">Save Changes</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = window.location.origin;
+let selectedDoctorId = null;
+let selectedSlotIso = null;
+
+// Auth Verification
+const token = localStorage.getItem('dentacore_token');
+const userStr = localStorage.getItem('dentacore_user');
+if (!token || !userStr) {
+  window.location.href = '../login.html';
+}
+
+const user = JSON.parse(userStr);
+document.getElementById('patientGreet').innerText = `Welcome, ${user.fullName}`;
+
+// Set tomorrow's date by default in date picker
+const tomorrow = new Date();
+tomorrow.setDate(tomorrow.getDate() + 1);
+document.getElementById('bookingDate').value = tomorrow.toISOString().split('T')[0];
+
+function logout() {
+  localStorage.clear();
+  window.location.href = '../login.html';
+}
+
+function showMsg(text, isSuccess = true) {
+  const el = document.getElementById('statusAlert');
+  el.className = 'alert ' + (isSuccess ? 'alert-success' : 'alert-error');
+  el.innerText = text;
+  el.style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(() => el.style.display = 'none', 6000);
+}
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  
+  event.target.classList.add('active');
+  document.getElementById(`tab-${tabId}`).classList.add('active');
+
+  if (tabId === 'appointments') loadMyAppointments();
+  if (tabId === 'receipts') loadMyReceipts();
+  if (tabId === 'profile') loadProfile();
+}
+
+// 1. Load Doctors
+async function loadDoctors() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/doctors`);
+    const doctors = await res.json();
+    const box = document.getElementById('doctorList');
+
+    if (!doctors.length) {
+      box.innerHTML = '<p style="color:var(--soft);">No active doctors currently available.</p>';
+      return;
+    }
+
+    box.innerHTML = doctors.map((d, i) => `
+      <div class="doc-card ${i === 0 ? 'selected' : ''}" onclick="selectDoctor('${d.id}', this)">
+        <div class="doc-name">Dr. ${d.fullName}</div>
+        <div class="doc-spec">${d.specialization} · ${d.experienceYears} yrs exp.</div>
+        <div style="font-size:12px; color:var(--soft); margin-top:4px;">${d.bio || ''}</div>
+        <div class="doc-fee">Consultation Fee: $${d.consultationFee.toFixed(2)}</div>
+      </div>
+    `).join('');
+
+    if (doctors.length > 0) {
+      selectedDoctorId = doctors[0].id;
+      loadDoctorAvailability();
+    }
+  } catch (err) {
+    document.getElementById('doctorList').innerHTML = `<p style="color:var(--red);">Failed to load doctors: ${err.message}</p>`;
+  }
+}
+
+function selectDoctor(id, el) {
+  selectedDoctorId = id;
+  document.querySelectorAll('.doc-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  loadDoctorAvailability();
+}
+
+// 2. Load Availability Slots
+async function loadDoctorAvailability() {
+  const dateVal = document.getElementById('bookingDate').value;
+  const box = document.getElementById('slotsBox');
+  if (!selectedDoctorId || !dateVal) return;
+
+  box.innerHTML = '<p style="font-size:13px; color:var(--soft);">Calculating real-time slots...</p>';
+  selectedSlotIso = null;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/doctors/${selectedDoctorId}/availability?date=${dateVal}`);
+    const slots = await res.json();
+
+    if (!slots.length) {
+      box.innerHTML = '<p style="font-size:13px; color:var(--amber);">Doctor has no scheduled clinic hours on this date. Please choose another date (Mon-Fri).</p>';
+      return;
+    }
+
+    box.innerHTML = slots.map(s => {
+      const timeStr = new Date(s.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      if (!s.isAvailable) {
+        return `<button type="button" class="slot-pill disabled" disabled title="Slot Booked">${timeStr}</button>`;
+      }
+      return `<button type="button" class="slot-pill" onclick="selectSlot('${s.startTime}', this)">${timeStr}</button>`;
+    }).join('');
+  } catch (err) {
+    box.innerHTML = `<p style="color:var(--red); font-size:13px;">Error loading slots: ${err.message}</p>`;
+  }
+}
+
+function selectSlot(isoTime, btn) {
+  selectedSlotIso = isoTime;
+  document.querySelectorAll('.slot-pill').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+// 3. Submit Booking
+async function submitBooking() {
+  if (!selectedDoctorId) return showMsg('Please select a doctor.', false);
+  if (!selectedSlotIso) return showMsg('Please select an available 30-min time slot.', false);
+
+  const reason = document.getElementById('bookingReason').value.trim();
+  const btn = document.getElementById('btnBook');
+  btn.disabled = true;
+  btn.innerText = 'Booking...';
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/appointments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        doctorId: selectedDoctorId,
+        requestedDateTime: selectedSlotIso,
+        reasonForVisit: reason
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Booking failed.');
+
+    showMsg('Appointment booked successfully! It has been placed in the doctor\'s approval queue.');
+    document.getElementById('bookingReason').value = '';
+    loadDoctorAvailability();
+  } catch (err) {
+    showMsg(err.message, false);
+  } finally {
+    btn.disabled = false;
+    btn.innerText = 'Request Appointment Slot';
+  }
+}
+
+// 4. Load Appointments
+async function loadMyAppointments() {
+  const container = document.getElementById('appointmentsTableContainer');
+  container.innerHTML = '<p>Loading your appointments...</p>';
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/appointments/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const list = await res.json();
+
+    if (!list.length) {
+      container.innerHTML = '<p style="color:var(--soft); padding:16px 0;">You have no appointments yet. Use the "Book Appointment" tab to schedule your first visit.</p>';
+      return;
+    }
+
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Date & Time</th>
+            <th>Doctor</th>
+            <th>Status</th>
+            <th>Payment Status</th>
+            <th>Diagnosis & Prescription</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(a => {
+            const dateDisplay = a.confirmedDateTime 
+              ? `<b style="color:var(--deep);">${new Date(a.confirmedDateTime).toLocaleString()}</b> (Confirmed)`
+              : `${new Date(a.requestedDateTime).toLocaleString()} (Requested)`;
+
+            let statusBadge = `<span class="badge badge-${a.status.toLowerCase()}">${a.status}</span>`;
+            
+            // Payment Live Badge
+            let payBadge = `<span style="color:var(--soft); font-size:12px;">N/A</span>`;
+            if (a.receiptId) {
+              if (a.paymentStatus === 'Paid') {
+                payBadge = `<span class="badge badge-paid">✓ PAID ($${a.consultationFee.toFixed(2)})</span>`;
+              } else {
+                payBadge = `<span class="badge badge-pending">PENDING ($${a.consultationFee.toFixed(2)})</span>`;
+              }
+            }
+
+            // Diagnosis summary
+            let diagInfo = '-';
+            if (a.diagnoses && a.diagnoses.length > 0) {
+              const d = a.diagnoses[0];
+              diagInfo = `<b>${d.diseaseName}</b><br><small style="color:var(--soft);">${d.notes || ''} ${d.prescription ? '💊 ' + d.prescription : ''}</small>`;
+            }
+
+            // Action buttons
+            let actions = [];
+            if (a.receiptId) {
+              actions.push(`<button class="btn btn-outline btn-sm" onclick="downloadReceipt('${a.id}')">📄 PDF Receipt</button>`);
+            }
+            if (a.status === 'Pending') {
+              actions.push(`<button class="btn btn-danger btn-sm" onclick="cancelAppointment('${a.id}')">Cancel</button>`);
+            }
+
+            return `
+              <tr>
+                <td>${dateDisplay}</td>
+                <td><b>Dr. ${a.doctorName}</b><br><small style="color:var(--soft);">${a.doctorSpecialization}</small></td>
+                <td>${statusBadge}</td>
+                <td>${payBadge}</td>
+                <td>${diagInfo}</td>
+                <td>${actions.join(' ')}</td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    container.innerHTML = `<p style="color:var(--red);">Error loading appointments: ${err.message}</p>`;
+  }
+}
+
+async function cancelAppointment(id) {
+  if (!confirm('Are you sure you want to cancel this pending appointment?')) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/appointments/${id}/cancel`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Cancellation failed.');
+    showMsg('Appointment successfully cancelled.');
+    loadMyAppointments();
+  } catch (err) {
+    showMsg(err.message, false);
+  }
+}
+
+function downloadReceipt(apptId) {
+  window.open(`${API_BASE}/api/v1/receipts/${apptId}/download?access_token=${token}`, '_blank');
+}
+
+// 5. Load Receipts
+async function loadMyReceipts() {
+  const container = document.getElementById('receiptsTableContainer');
+  container.innerHTML = '<p>Loading your receipts and invoices...</p>';
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/receipts/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const list = await res.json();
+
+    if (!list.length) {
+      container.innerHTML = '<p style="color:var(--soft); padding:16px 0;">No receipts generated yet. Receipts are prepared once a doctor approves your visit.</p>';
+      return;
+    }
+
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Receipt #</th>
+            <th>Attending Doctor</th>
+            <th>Amount Due</th>
+            <th>Payment Status</th>
+            <th>Issued Date</th>
+            <th>Settlement</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(r => `
+            <tr>
+              <td class="mono"><b>${r.receiptNumber}</b></td>
+              <td>Dr. ${r.doctorName}</td>
+              <td><b>$${r.amount.toFixed(2)}</b></td>
+              <td>
+                ${r.paymentStatus === 'Paid' 
+                  ? '<span class="badge badge-paid">PAID</span>' 
+                  : '<span class="badge badge-pending">PENDING</span>'}
+              </td>
+              <td>${new Date(r.generatedAt).toLocaleDateString()}</td>
+              <td style="font-size:12px; color:var(--soft);">
+                ${r.paymentMethod ? `${r.paymentMethod} (Ref: ${r.transactionRef || '-'})` : 'Awaiting settlement'}
+              </td>
+              <td>
+                <button class="btn btn-primary btn-sm" onclick="downloadReceipt('${r.appointmentId}')">⬇ Download PDF</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    container.innerHTML = `<p style="color:var(--red);">Error loading receipts: ${err.message}</p>`;
+  }
+}
+
+// 6. Profile
+async function loadProfile() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/patients/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const p = await res.json();
+    document.getElementById('profName').value = p.fullName || '';
+    document.getElementById('profPhone').value = p.phoneNumber || '';
+    document.getElementById('profDob').value = p.dateOfBirth || '';
+    document.getElementById('profBlood').value = p.bloodGroup || '';
+    document.getElementById('profAddress').value = p.address || '';
+    document.getElementById('profHistory').value = p.medicalHistory || '';
+    document.getElementById('profEmergency').value = p.emergencyContact || '';
+  } catch (err) {
+    showMsg('Could not load profile: ' + err.message, false);
+  }
+}
+
+async function saveProfile(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnSaveProfile');
+  btn.disabled = true;
+  btn.innerText = 'Saving...';
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/patients/me`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        fullName: document.getElementById('profName').value,
+        phoneNumber: document.getElementById('profPhone').value,
+        dateOfBirth: document.getElementById('profDob').value || null,
+        bloodGroup: document.getElementById('profBlood').value || null,
+        address: document.getElementById('profAddress').value || null,
+        medicalHistory: document.getElementById('profHistory').value || null,
+        emergencyContact: document.getElementById('profEmergency').value || null
+      })
+    });
+
+    if (!res.ok) throw new Error('Failed to update profile.');
+    showMsg('Profile successfully updated.');
+  } catch (err) {
+    showMsg(err.message, false);
+  } finally {
+    btn.disabled = false;
+    btn.innerText = 'Save Changes';
+  }
+}
+
+// Initial Load
+loadDoctors();
+</script>
+</body>
+</html>

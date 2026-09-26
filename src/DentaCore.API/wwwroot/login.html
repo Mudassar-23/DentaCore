@@ -1,0 +1,349 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sign In & Register — DentaCore</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#x1F9B7;</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;1,500&family=Inter:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+:root{
+  --white:#FFFFFF; --off:#F5F5F0; --green:#1F8A55; --deep:#14532D;
+  --ink:#0D0D0D; --soft:#4A4A45; --mark:#262624; --border:#e2e8f0;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{min-height:100%;}
+body{font-family:'Inter',sans-serif; color:var(--ink); background:var(--white);}
+h1,h2{font-family:'Fraunces',serif; font-weight:500;}
+.mono{font-family:'Space Mono',monospace;}
+a{color:inherit; text-decoration:none;}
+
+.screen{display:grid; grid-template-columns:1fr 1fr; min-height:100vh;}
+
+/* LEFT — brand panel */
+.brand{background:var(--deep); color:var(--white); position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between; padding:44px 48px;}
+#bg-canvas{position:absolute; inset:0; width:100%; height:100%; opacity:0.85;}
+.brand-top{position:relative; z-index:2; display:flex; align-items:center; gap:8px; font-family:'Fraunces',serif; font-size:22px;}
+.brand-top a{display:flex; align-items:center; gap:8px;}
+.brand-top span{color:#8fd6ac;}
+.brand-mid{position:relative; z-index:2; max-width:420px;}
+.brand-mid .kicker{font-family:'Space Mono',monospace; font-size:12px; color:#8fd6ac; margin-bottom:16px; letter-spacing:1px;}
+.brand-mid h1{font-size:36px; line-height:1.15; margin-bottom:16px;}
+.brand-mid p{color:#cfe4d5; font-size:15px; line-height:1.6;}
+.brand-bottom{position:relative; z-index:2; font-size:12px; color:#a9cdb6; font-family:'Space Mono',monospace; display:flex; justify-content:space-between;}
+
+/* RIGHT — form panel */
+.formside{display:flex; align-items:center; justify-content:center; padding:40px 24px; background:#fff;}
+.form-box{width:100%; max-width:420px;}
+.form-box h2{font-size:28px; margin-bottom:6px;}
+.form-box .sub{color:var(--soft); font-size:14px; margin-bottom:24px;}
+
+/* Quick Demo Bar */
+.demo-bar{background:var(--off); border:1px solid #e0e0da; border-radius:8px; padding:12px 14px; margin-bottom:24px;}
+.demo-bar .demo-title{font-size:11px; font-weight:700; color:var(--deep); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;}
+.demo-buttons{display:flex; gap:6px;}
+.btn-demo{flex:1; padding:6px 4px; font-size:11px; font-weight:600; border:1px solid #cbd5e1; border-radius:4px; background:#fff; cursor:pointer; color:var(--mark); transition:all 0.15s;}
+.btn-demo:hover{background:var(--deep); color:#fff; border-color:var(--deep);}
+
+/* Auth Mode Toggle (Sign In vs Register) */
+.auth-mode{display:flex; border-bottom:2px solid #e5e5e0; margin-bottom:20px;}
+.auth-mode button{flex:1; background:none; border:none; padding:10px 0; font-size:14px; font-weight:600; color:var(--soft); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px;}
+.auth-mode button.active{color:var(--deep); border-bottom-color:var(--green);}
+
+/* Alerts */
+.alert{display:none; padding:10px 14px; border-radius:6px; font-size:13px; margin-bottom:18px;}
+.alert-error{background:#fef2f2; color:#b91c1c; border:1px solid #fecaca;}
+.alert-success{background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0;}
+
+label{display:block; font-size:13px; font-weight:600; margin-bottom:5px; margin-top:14px;}
+label:first-of-type{margin-top:0;}
+input, select{width:100%; padding:11px 13px; border:1px solid #d1d5db; border-radius:6px; font-size:14px; font-family:'Inter',sans-serif; background:var(--white);}
+input:focus, select:focus{outline:none; border-color:var(--green); box-shadow:0 0 0 3px rgba(31,138,85,0.15);}
+
+.btn-submit{width:100%; margin-top:22px; padding:13px; background:var(--deep); color:var(--white); border:none; border-radius:6px; font-size:15px; font-weight:600; cursor:pointer; transition:transform .15s, background .15s;}
+.btn-submit:hover{background:#166534; transform:translateY(-1px);}
+
+.foot-note{text-align:center; font-size:13px; color:var(--soft); margin-top:20px;}
+.foot-note a{color:var(--deep); font-weight:600;}
+
+@media(max-width:860px){
+  .screen{grid-template-columns:1fr;}
+  .brand{min-height:240px; padding:28px;}
+  .brand-mid h1{font-size:26px;}
+}
+</style>
+</head>
+<body>
+
+<div class="screen">
+  <div class="brand">
+    <canvas id="bg-canvas"></canvas>
+    <div class="brand-top"><a href="index.html"><span>◐</span> DentaCore</a></div>
+    <div class="brand-mid" id="bm">
+      <div class="kicker">DENTAL PORTAL</div>
+      <h1>One login, every part of the <em>visit</em></h1>
+      <p>Seamless appointments, doctor approval queue, clinical diagnosis, and dynamic PDF receipts — securely scoped to your role.</p>
+    </div>
+    <div class="brand-bottom">
+      <span>ENTERPRISE PRACTICE SECURE</span>
+      <span>256-BIT TLS</span>
+    </div>
+  </div>
+
+  <div class="formside">
+    <div class="form-box" id="fb">
+      <h2 id="formTitle">Sign in to DentaCore</h2>
+      <p class="sub" id="formSubtitle">Enter your credentials to access your portal.</p>
+
+      <!-- Quick Demo Login Bar -->
+      <div class="demo-bar">
+        <div class="demo-title">⚡ Instant Demo Logins:</div>
+        <div class="demo-buttons">
+          <button class="btn-demo" type="button" onclick="fillDemo('patient@dentacore.local','Patient@12345!')">👤 Patient</button>
+          <button class="btn-demo" type="button" onclick="fillDemo('doctor@dentacore.local','Doctor@12345!')">🩺 Doctor</button>
+          <button class="btn-demo" type="button" onclick="fillDemo('admin@dentacore.local','Admin@12345!')">🛡️ Admin</button>
+        </div>
+      </div>
+
+      <div class="auth-mode">
+        <button type="button" class="active" id="tabSignIn" onclick="switchAuthMode('signin')">Sign In</button>
+        <button type="button" id="tabRegister" onclick="switchAuthMode('register')">Patient Register</button>
+      </div>
+
+      <div id="alertBox" class="alert"></div>
+
+      <!-- Sign In Form -->
+      <form id="signInForm" onsubmit="handleSignIn(event)">
+        <label for="loginEmail">Email address</label>
+        <input id="loginEmail" type="email" placeholder="you@dentacore.local" required autocomplete="username">
+
+        <label for="loginPass">Password</label>
+        <input id="loginPass" type="password" placeholder="••••••••" required autocomplete="current-password">
+
+        <button class="btn-submit" type="submit" id="btnSignInSubmit">Sign in</button>
+      </form>
+
+      <!-- Register Patient Form -->
+      <form id="registerForm" style="display:none;" onsubmit="handleRegister(event)">
+        <label for="regName">Full Name</label>
+        <input id="regName" type="text" placeholder="Jane Doe" required>
+
+        <label for="regEmail">Email address</label>
+        <input id="regEmail" type="email" placeholder="jane.doe@example.com" required>
+
+        <label for="regPass">Password</label>
+        <input id="regPass" type="password" placeholder="Min. 6 characters" minlength="6" required>
+
+        <label for="regPhone">Phone Number</label>
+        <input id="regPhone" type="tel" placeholder="+1 (555) 234-5678" required>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div>
+            <label for="regDob">Date of Birth</label>
+            <input id="regDob" type="date">
+          </div>
+          <div>
+            <label for="regBlood">Blood Group</label>
+            <select id="regBlood">
+              <option value="">Select...</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn-submit" type="submit" id="btnRegSubmit">Create Account</button>
+      </form>
+
+      <div class="foot-note">
+        <a href="index.html">← Back to DentaCore Home</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = window.location.origin;
+
+function switchAuthMode(mode) {
+  const isSignIn = mode === 'signin';
+  document.getElementById('tabSignIn').classList.toggle('active', isSignIn);
+  document.getElementById('tabRegister').classList.toggle('active', !isSignIn);
+  document.getElementById('signInForm').style.display = isSignIn ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = isSignIn ? 'none' : 'block';
+  document.getElementById('formTitle').innerText = isSignIn ? 'Sign in to DentaCore' : 'Create Patient Account';
+  document.getElementById('formSubtitle').innerText = isSignIn ? 'Enter your credentials to access your portal.' : 'Register as a new patient to book consultations.';
+  hideAlert();
+}
+
+function fillDemo(email, pass) {
+  switchAuthMode('signin');
+  document.getElementById('loginEmail').value = email;
+  document.getElementById('loginPass').value = pass;
+  hideAlert();
+}
+
+function showAlert(msg, isSuccess = false) {
+  const box = document.getElementById('alertBox');
+  box.className = 'alert ' + (isSuccess ? 'alert-success' : 'alert-error');
+  box.innerText = msg;
+  box.style.display = 'block';
+}
+
+function hideAlert() {
+  document.getElementById('alertBox').style.display = 'none';
+}
+
+async function handleSignIn(e) {
+  e.preventDefault();
+  hideAlert();
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const btn = document.getElementById('btnSignInSubmit');
+  btn.disabled = true;
+  btn.innerText = 'Signing in...';
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || 'Login failed. Please check your credentials.');
+    }
+
+    localStorage.setItem('dentacore_token', data.accessToken);
+    localStorage.setItem('dentacore_refresh', data.refreshToken);
+    localStorage.setItem('dentacore_user', JSON.stringify(data.user));
+
+    showAlert('Authentication successful! Redirecting...', true);
+
+    setTimeout(() => {
+      redirectByRole(data.user.role);
+    }, 400);
+  } catch (err) {
+    showAlert(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerText = 'Sign in';
+  }
+}
+
+async function handleRegister(e) {
+  e.preventDefault();
+  hideAlert();
+  const fullName = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPass').value;
+  const phoneNumber = document.getElementById('regPhone').value.trim();
+  const dobVal = document.getElementById('regDob').value;
+  const bloodGroup = document.getElementById('regBlood').value;
+
+  const btn = document.getElementById('btnRegSubmit');
+  btn.disabled = true;
+  btn.innerText = 'Registering...';
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fullName,
+        email,
+        password,
+        phoneNumber,
+        dateOfBirth: dobVal || null,
+        bloodGroup: bloodGroup || null
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || 'Registration failed.');
+    }
+
+    localStorage.setItem('dentacore_token', data.accessToken);
+    localStorage.setItem('dentacore_refresh', data.refreshToken);
+    localStorage.setItem('dentacore_user', JSON.stringify(data.user));
+
+    showAlert('Account created! Entering patient portal...', true);
+    setTimeout(() => {
+      window.location.href = 'patient/index.html';
+    }, 500);
+  } catch (err) {
+    showAlert(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerText = 'Create Account';
+  }
+}
+
+function redirectByRole(role) {
+  if (role === 'Doctor') {
+    window.location.href = 'doctor/index.html';
+  } else if (role === 'Admin') {
+    window.location.href = 'admin/index.html';
+  } else {
+    window.location.href = 'patient/index.html';
+  }
+}
+
+/* Background 3D Tooth Canvas Animation */
+(function(){
+  const canvas = document.getElementById('bg-canvas');
+  if(!canvas) return;
+  const renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:true});
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  camera.position.z = 6;
+
+  function size(){
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    renderer.setSize(w,h,false); camera.aspect = w/h; camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', size); size();
+
+  const group = new THREE.Group(); group.position.set(2.2,-0.8,0); scene.add(group);
+  const molar = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(1.6,1),
+    new THREE.MeshStandardMaterial({color:0xffffff, roughness:0.3, transparent:true, opacity:0.15, flatShading:true})
+  );
+  group.add(molar);
+  [2.2, 2.6].forEach((r,i)=>{
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(r,0.008,8,80), new THREE.MeshBasicMaterial({color:0x8fd6ac, transparent:true, opacity:0.3}));
+    ring.rotation.x = Math.PI/2 + i*0.4;
+    group.add(ring);
+  });
+
+  const pGeo = new THREE.BufferGeometry();
+  const n=90, pos=new Float32Array(n*3);
+  for(let i=0;i<n;i++){ pos[i*3]=(Math.random()-0.5)*10; pos[i*3+1]=(Math.random()-0.5)*10; pos[i*3+2]=(Math.random()-0.5)*6; }
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({color:0x8fd6ac, size:0.03, transparent:true, opacity:0.4}));
+  scene.add(particles);
+
+  scene.add(new THREE.AmbientLight(0xffffff,0.8));
+  const dl = new THREE.DirectionalLight(0xffffff,0.6); dl.position.set(2,3,4); scene.add(dl);
+
+  function animate(){
+    requestAnimationFrame(animate);
+    group.rotation.y += 0.003; particles.rotation.y += 0.0005;
+    renderer.render(scene,camera);
+  }
+  animate();
+})();
+</script>
+</body>
+</html>

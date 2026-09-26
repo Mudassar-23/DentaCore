@@ -1,0 +1,453 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Admin Portal — DentaCore</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#x1F9B7;</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;1,500&family=Inter:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --white:#FFFFFF; --off:#F8FAFC; --panel:#FFFFFF; --green:#1F8A55; --deep:#14532D;
+  --ink:#0F172A; --soft:#64748B; --border:#E2E8F0; --amber:#D97706; --red:#DC2626;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:'Inter',sans-serif; color:var(--ink); background:#F1F5F9; min-height:100vh;}
+h1,h2,h3,h4{font-family:'Fraunces',serif; font-weight:500;}
+.mono{font-family:'Space Mono',monospace;}
+a{color:inherit; text-decoration:none;}
+
+header{background:#fff; border-bottom:1px solid var(--border); padding:14px 28px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:40;}
+.logo{font-family:'Fraunces',serif; font-size:20px; font-weight:500; display:flex; align-items:center; gap:6px;}
+.logo span{color:var(--green);}
+.user-bar{display:flex; align-items:center; gap:16px;}
+.user-badge{font-size:12px; font-weight:700; color:#7C2D12; background:#FFEDD5; padding:4px 10px; border-radius:20px;}
+.btn-logout{font-size:12px; font-weight:600; color:var(--soft); border:1px solid var(--border); padding:6px 12px; border-radius:6px; background:#fff; cursor:pointer;}
+.btn-logout:hover{background:#F8FAFC; color:var(--red); border-color:#FECACA;}
+
+.container{max-width:1200px; margin:24px auto; padding:0 20px;}
+
+/* KPI Grid */
+.kpi-row{display:grid; grid-template-columns:repeat(6,1fr); gap:14px; margin-bottom:24px;}
+.kpi-card{background:#fff; border:1px solid var(--border); border-radius:8px; padding:16px; box-shadow:0 1px 3px rgba(0,0,0,0.02);}
+.kpi-label{font-size:11px; color:var(--soft); font-weight:600; text-transform:uppercase;}
+.kpi-val{font-size:22px; font-weight:700; color:var(--deep); margin-top:4px; font-family:'Fraunces',serif;}
+.kpi-val.pending{color:var(--amber);}
+
+.tabs-nav{display:flex; gap:10px; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:12px;}
+.tab-link{padding:8px 18px; border-radius:6px; font-size:14px; font-weight:600; color:var(--soft); cursor:pointer; background:transparent; border:none; transition:all .15s;}
+.tab-link.active{background:var(--deep); color:#fff;}
+
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+.card{background:#fff; border:1px solid var(--border); border-radius:10px; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.02); margin-bottom:20px;}
+.card-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;}
+.card-title{font-size:18px; color:var(--ink); font-weight:600;}
+
+table{width:100%; border-collapse:collapse; text-align:left; font-size:14px;}
+th, td{padding:12px 14px; border-bottom:1px solid var(--border); vertical-align:middle;}
+th{background:#F8FAFC; color:var(--soft); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;}
+
+.badge{display:inline-block; padding:3px 8px; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase;}
+.badge-pending{background:#FEF3C7; color:#B45309;}
+.badge-approved{background:#E0E7FF; color:#4338CA;}
+.badge-completed{background:#DCFCE7; color:#15803D;}
+.badge-rejected{background:#FEE2E2; color:#B91C1C;}
+.badge-paid{background:#1F8A55; color:#fff;}
+.badge-unapproved{background:#FEE2E2; color:#B91C1C; border:1px solid #FECACA;}
+
+.btn{display:inline-block; padding:6px 12px; border-radius:5px; font-size:12px; font-weight:600; cursor:pointer; border:none; text-align:center;}
+.btn-primary{background:var(--deep); color:#fff;}
+.btn-primary:hover{background:#166534;}
+.btn-outline{background:#fff; border:1px solid var(--border); color:var(--ink);}
+.btn-outline:hover{background:#F8FAFC;}
+.btn-danger{background:#FEE2E2; color:#B91C1C; border:1px solid #FECACA;}
+.btn-action-group{display:flex; gap:6px;}
+
+.alert{padding:12px 16px; border-radius:8px; font-size:13px; margin-bottom:16px; display:none;}
+.alert-success{background:#F0FDF4; border:1px solid #BBF7D0; color:#15803D;}
+.alert-error{background:#FEF2F2; border:1px solid #FECACA; color:#B91C1C;}
+
+@media(max-width:960px){
+  .kpi-row{grid-template-columns:repeat(3,1fr);}
+}
+@media(max-width:600px){
+  .kpi-row{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><a href="../index.html"><span>◐</span> DentaCore</a></div>
+  <div class="user-bar">
+    <div id="adminGreet" style="font-size:14px; font-weight:600;">System Administrator</div>
+    <span class="user-badge">ADMIN</span>
+    <button class="btn-logout" onclick="logout()">Sign Out</button>
+  </div>
+</header>
+
+<div class="container">
+  <div id="statusAlert" class="alert"></div>
+
+  <!-- KPI Overview -->
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-label">Revenue Settled</div><div class="kpi-val" id="kpiRevenue">$0.00</div></div>
+    <div class="kpi-card"><div class="kpi-label">Pending Billing</div><div class="kpi-val pending" id="kpiPendingRev">$0.00</div></div>
+    <div class="kpi-card"><div class="kpi-label">Active Doctors</div><div class="kpi-val" id="kpiDoctors">0</div></div>
+    <div class="kpi-card"><div class="kpi-label">Pending Approval</div><div class="kpi-val pending" id="kpiPendingDoctors">0</div></div>
+    <div class="kpi-card"><div class="kpi-label">Total Patients</div><div class="kpi-val" id="kpiPatients">0</div></div>
+    <div class="kpi-card"><div class="kpi-label">Total Appointments</div><div class="kpi-val" id="kpiAppointments">0</div></div>
+  </div>
+
+  <div class="tabs-nav">
+    <button class="tab-link active" onclick="switchTab('doctors')">🩺 Doctor Directory & Approvals</button>
+    <button class="tab-link" onclick="switchTab('appointments')">📋 Appointments Ledger</button>
+    <button class="tab-link" onclick="switchTab('financials')">💰 Financial Reconciliation</button>
+    <button class="tab-link" onclick="switchTab('audit')">🛡️ Global System Audit</button>
+  </div>
+
+  <!-- TAB 1: DOCTORS -->
+  <div id="tab-doctors" class="tab-content active">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Doctor Credentials & Verification Roster</span>
+        <button class="btn btn-outline" onclick="loadDoctors()">↻ Refresh</button>
+      </div>
+      <div id="doctorsTableContainer">Loading doctors...</div>
+    </div>
+  </div>
+
+  <!-- TAB 2: APPOINTMENTS -->
+  <div id="tab-appointments" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Practice-wide Appointment Ledger</span>
+        <button class="btn btn-outline" onclick="loadAppointments()">↻ Refresh</button>
+      </div>
+      <div id="appointmentsTableContainer">Loading appointments...</div>
+    </div>
+  </div>
+
+  <!-- TAB 3: FINANCIALS -->
+  <div id="tab-financials" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Master Financial Invoices & Receipts</span>
+        <button class="btn btn-outline" onclick="loadReceipts()">↻ Refresh</button>
+      </div>
+      <div id="financialsTableContainer">Loading financial records...</div>
+    </div>
+  </div>
+
+  <!-- TAB 4: AUDIT -->
+  <div id="tab-audit" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Tamper-evident Global Audit Logs (EF Core Interceptor)</span>
+        <button class="btn btn-outline" onclick="loadAuditLogs()">↻ Refresh</button>
+      </div>
+      <div id="auditTableContainer">Loading audit trail...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = window.location.origin;
+
+const token = localStorage.getItem('dentacore_token');
+const userStr = localStorage.getItem('dentacore_user');
+if (!token || !userStr) {
+  window.location.href = '../login.html';
+}
+
+const user = JSON.parse(userStr);
+if (user.role !== 'Admin') {
+  alert('Unauthorized: Admin role required.');
+  window.location.href = '../login.html';
+}
+document.getElementById('adminGreet').innerText = user.fullName;
+
+function logout() {
+  localStorage.clear();
+  window.location.href = '../login.html';
+}
+
+function showMsg(text, isSuccess = true) {
+  const el = document.getElementById('statusAlert');
+  el.className = 'alert ' + (isSuccess ? 'alert-success' : 'alert-error');
+  el.innerText = text;
+  el.style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(() => el.style.display = 'none', 6000);
+}
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  
+  event.target.classList.add('active');
+  document.getElementById(`tab-${tabId}`).classList.add('active');
+
+  if (tabId === 'doctors') loadDoctors();
+  if (tabId === 'appointments') loadAppointments();
+  if (tabId === 'financials') loadReceipts();
+  if (tabId === 'audit') loadAuditLogs();
+}
+
+// 0. Load KPIs
+async function loadKpis() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/stats`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const s = await res.json();
+    document.getElementById('kpiRevenue').innerText = `$${s.totalRevenue.toFixed(2)}`;
+    document.getElementById('kpiPendingRev').innerText = `$${s.pendingRevenue.toFixed(2)}`;
+    document.getElementById('kpiDoctors').innerText = s.totalDoctors;
+    document.getElementById('kpiPendingDoctors').innerText = s.pendingDoctors;
+    document.getElementById('kpiPatients').innerText = s.totalPatients;
+    document.getElementById('kpiAppointments').innerText = s.totalAppointments;
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// 1. Doctors
+async function loadDoctors() {
+  const container = document.getElementById('doctorsTableContainer');
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/doctors`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const docs = await res.json();
+    loadKpis();
+
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Doctor Name</th>
+            <th>Specialization & License</th>
+            <th>Consultation Fee</th>
+            <th>Verification Status</th>
+            <th>Active</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${docs.map(d => `
+            <tr>
+              <td>
+                <b>Dr. ${d.fullName}</b><br>
+                <small style="color:var(--soft);">${d.email} · ${d.phoneNumber}</small>
+              </td>
+              <td>
+                <b>${d.specialization}</b><br>
+                <small class="mono" style="color:var(--soft);">Lic: ${d.licenseNumber} · ${d.experienceYears} yrs</small>
+              </td>
+              <td><b>$${d.consultationFee.toFixed(2)}</b></td>
+              <td>
+                ${d.isApprovedByAdmin 
+                  ? '<span class="badge badge-completed">✓ Approved</span>' 
+                  : '<span class="badge badge-unapproved">Pending Admin Approval</span>'}
+              </td>
+              <td>
+                ${d.isActive ? '<span style="color:var(--green); font-weight:700;">Active</span>' : '<span style="color:var(--red);">Suspended</span>'}
+              </td>
+              <td>
+                <div class="btn-action-group">
+                  ${!d.isApprovedByAdmin ? `<button class="btn btn-primary" onclick="approveDoctor('${d.id}')">Approve Account</button>` : ''}
+                  <button class="btn btn-outline" onclick="toggleDoctorStatus('${d.id}', ${!d.isActive})">
+                    ${d.isActive ? 'Suspend' : 'Activate'}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    container.innerHTML = `<p style="color:var(--red);">Error loading doctors: ${err.message}</p>`;
+  }
+}
+
+async function approveDoctor(id) {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/doctors/${id}/approve`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Approval failed.');
+    showMsg('Doctor account approved.');
+    loadDoctors();
+  } catch (err) {
+    showMsg(err.message, false);
+  }
+}
+
+async function toggleDoctorStatus(id, active) {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/doctors/${id}/status?active=${active}`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Status update failed.');
+    showMsg(`Doctor status updated to ${active ? 'Active' : 'Suspended'}.`);
+    loadDoctors();
+  } catch (err) {
+    showMsg(err.message, false);
+  }
+}
+
+// 2. Appointments
+async function loadAppointments() {
+  const container = document.getElementById('appointmentsTableContainer');
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/appointments`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const list = await res.json();
+
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Patient</th>
+            <th>Attending Doctor</th>
+            <th>Status</th>
+            <th>Diagnosis</th>
+            <th>Receipt</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(a => `
+            <tr>
+              <td>${a.confirmedDateTime ? new Date(a.confirmedDateTime).toLocaleString() : new Date(a.requestedDateTime).toLocaleString()}</td>
+              <td><b>${a.patientName}</b><br><small style="color:var(--soft);">${a.patientPhone}</small></td>
+              <td><b>Dr. ${a.doctorName}</b><br><small style="color:var(--soft);">${a.doctorSpecialization}</small></td>
+              <td><span class="badge badge-${a.status.toLowerCase()}">${a.status}</span></td>
+              <td><small>${a.diagnoses.length ? a.diagnoses[0].diseaseName : '-'}</small></td>
+              <td>
+                ${a.receiptId ? `<button class="btn btn-outline" onclick="downloadReceipt('${a.id}')">📄 PDF</button>` : '-'}
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    container.innerHTML = `<p style="color:var(--red);">Error loading appointments: ${err.message}</p>`;
+  }
+}
+
+// 3. Financials
+async function loadReceipts() {
+  const container = document.getElementById('financialsTableContainer');
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/receipts`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    const receipts = data.receipts || [];
+
+    container.innerHTML = `
+      <div style="display:flex; justify-content:space-between; margin-bottom:14px; font-size:14px; background:#F8FAFC; padding:12px; border-radius:6px; border:1px solid var(--border);">
+        <span>Total Issued: <b>${data.totalReceipts}</b></span>
+        <span>Total Paid Revenue: <b style="color:var(--deep);">$${data.totalRevenue.toFixed(2)}</b></span>
+        <span>Pending Collection: <b style="color:var(--amber);">$${data.totalPending.toFixed(2)}</b></span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Receipt #</th>
+            <th>Doctor</th>
+            <th>Patient</th>
+            <th>Amount</th>
+            <th>Payment Status</th>
+            <th>Method & Txn</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${receipts.map(r => `
+            <tr>
+              <td class="mono"><b>${r.receiptNumber}</b></td>
+              <td>Dr. ${r.doctorName}</td>
+              <td>${r.patientName}</td>
+              <td><b>$${r.amount.toFixed(2)}</b></td>
+              <td>
+                ${r.paymentStatus === 'Paid'
+                  ? '<span class="badge badge-paid">PAID</span>'
+                  : '<span class="badge badge-pending">PENDING</span>'}
+              </td>
+              <td><small>${r.paymentMethod ? `${r.paymentMethod} (${r.transactionRef || '-'})` : 'Unsettled'}</small></td>
+              <td>
+                <button class="btn btn-primary" onclick="downloadReceipt('${r.appointmentId}')">⬇ Download PDF</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    container.innerHTML = `<p style="color:var(--red);">Error loading receipts: ${err.message}</p>`;
+  }
+}
+
+// 4. Audit
+async function loadAuditLogs() {
+  const container = document.getElementById('auditTableContainer');
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/audit-logs`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const logs = await res.json();
+
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>User</th>
+            <th>Action</th>
+            <th>Entity</th>
+            <th>Snapshot (Old / New Values)</th>
+            <th>Client IP</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${logs.map(l => `
+            <tr>
+              <td class="mono" style="font-size:11px;">${new Date(l.createdAt).toLocaleString()}</td>
+              <td><small>${l.userEmail || 'System / Anonymous'}</small></td>
+              <td><span class="badge" style="background:#E2E8F0;">${l.action}</span></td>
+              <td><b>${l.entityName}</b></td>
+              <td style="max-width:360px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px;" title="${l.newValue || l.oldValue}">
+                ${l.newValue || l.oldValue || '-'}
+              </td>
+              <td class="mono" style="font-size:11px; color:var(--soft);">${l.ipAddress || '-'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    container.innerHTML = `<p style="color:var(--red);">Error loading audit logs: ${err.message}</p>`;
+  }
+}
+
+function downloadReceipt(apptId) {
+  window.open(`${API_BASE}/api/v1/receipts/${apptId}/download?access_token=${token}`, '_blank');
+}
+
+// Initial
+loadKpis();
+loadDoctors();
+</script>
+</body>
+</html>

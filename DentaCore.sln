@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1F31425D-8C6C-4842-8080-0209E0319AB1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentaCore.Domain", "src\DentaCore.Domain\DentaCore.Domain.csproj", "{9F55A219-2518-4115-B4F7-EBA1BCFD19F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentaCore.Application", "src\DentaCore.Application\DentaCore.Application.csproj", "{FE51460B-C07F-4425-993D-0BD1AD099EDC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentaCore.Infrastructure", "src\DentaCore.Infrastructure\DentaCore.Infrastructure.csproj", "{2B408291-60C4-4DDC-BE22-4A0C1AF87415}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentaCore.Shared", "src\DentaCore.Shared\DentaCore.Shared.csproj", "{DF93ECFA-BF79-49B8-BBD0-02671BA73931}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentaCore.API", "src\DentaCore.API\DentaCore.API.csproj", "{71DF8F72-D862-4AE0-A55D-746FC4364D65}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{D382495C-2627-475F-A5C0-3FF26EFE1D24}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentaCore.UnitTests", "tests\DentaCore.UnitTests\DentaCore.UnitTests.csproj", "{238BF8E4-F804-42B0-8C39-BB4779BAD749}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9F55A219-2518-4115-B4F7-EBA1BCFD19F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F55A219-2518-4115-B4F7-EBA1BCFD19F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F55A219-2518-4115-B4F7-EBA1BCFD19F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F55A219-2518-4115-B4F7-EBA1BCFD19F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE51460B-C07F-4425-993D-0BD1AD099EDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE51460B-C07F-4425-993D-0BD1AD099EDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE51460B-C07F-4425-993D-0BD1AD099EDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE51460B-C07F-4425-993D-0BD1AD099EDC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B408291-60C4-4DDC-BE22-4A0C1AF87415}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B408291-60C4-4DDC-BE22-4A0C1AF87415}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B408291-60C4-4DDC-BE22-4A0C1AF87415}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B408291-60C4-4DDC-BE22-4A0C1AF87415}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF93ECFA-BF79-49B8-BBD0-02671BA73931}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF93ECFA-BF79-49B8-BBD0-02671BA73931}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF93ECFA-BF79-49B8-BBD0-02671BA73931}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF93ECFA-BF79-49B8-BBD0-02671BA73931}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71DF8F72-D862-4AE0-A55D-746FC4364D65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71DF8F72-D862-4AE0-A55D-746FC4364D65}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71DF8F72-D862-4AE0-A55D-746FC4364D65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71DF8F72-D862-4AE0-A55D-746FC4364D65}.Release|Any CPU.Build.0 = Release|Any CPU
+		{238BF8E4-F804-42B0-8C39-BB4779BAD749}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{238BF8E4-F804-42B0-8C39-BB4779BAD749}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{238BF8E4-F804-42B0-8C39-BB4779BAD749}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{238BF8E4-F804-42B0-8C39-BB4779BAD749}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9F55A219-2518-4115-B4F7-EBA1BCFD19F4} = {1F31425D-8C6C-4842-8080-0209E0319AB1}
+		{FE51460B-C07F-4425-993D-0BD1AD099EDC} = {1F31425D-8C6C-4842-8080-0209E0319AB1}
+		{2B408291-60C4-4DDC-BE22-4A0C1AF87415} = {1F31425D-8C6C-4842-8080-0209E0319AB1}
+		{DF93ECFA-BF79-49B8-BBD0-02671BA73931} = {1F31425D-8C6C-4842-8080-0209E0319AB1}
+		{71DF8F72-D862-4AE0-A55D-746FC4364D65} = {1F31425D-8C6C-4842-8080-0209E0319AB1}
+		{238BF8E4-F804-42B0-8C39-BB4779BAD749} = {D382495C-2627-475F-A5C0-3FF26EFE1D24}
+	EndGlobalSection
+EndGlobal

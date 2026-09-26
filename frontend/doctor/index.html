@@ -1,0 +1,660 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Doctor Portal — DentaCore</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#x1F9B7;</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;1,500&family=Inter:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --white:#FFFFFF; --off:#F8FAFC; --panel:#FFFFFF; --green:#1F8A55; --deep:#14532D;
+  --ink:#0F172A; --soft:#64748B; --border:#E2E8F0; --amber:#D97706; --red:#DC2626;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:'Inter',sans-serif; color:var(--ink); background:#F1F5F9; min-height:100vh;}
+h1,h2,h3,h4{font-family:'Fraunces',serif; font-weight:500;}
+.mono{font-family:'Space Mono',monospace;}
+a{color:inherit; text-decoration:none;}
+
+header{background:#fff; border-bottom:1px solid var(--border); padding:14px 28px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:40;}
+.logo{font-family:'Fraunces',serif; font-size:20px; font-weight:500; display:flex; align-items:center; gap:6px;}
+.logo span{color:var(--green);}
+.user-bar{display:flex; align-items:center; gap:16px;}
+.user-badge{font-size:12px; font-weight:700; color:#1E40AF; background:#DBEAFE; padding:4px 10px; border-radius:20px;}
+.btn-logout{font-size:12px; font-weight:600; color:var(--soft); border:1px solid var(--border); padding:6px 12px; border-radius:6px; background:#fff; cursor:pointer;}
+.btn-logout:hover{background:#F8FAFC; color:var(--red); border-color:#FECACA;}
+
+.container{max-width:1200px; margin:24px auto; padding:0 20px;}
+
+/* KPI Bar */
+.kpi-row{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px;}
+.kpi-card{background:#fff; border:1px solid var(--border); border-radius:8px; padding:18px; box-shadow:0 1px 3px rgba(0,0,0,0.02);}
+.kpi-label{font-size:12px; color:var(--soft); font-weight:600; text-transform:uppercase;}
+.kpi-val{font-size:24px; font-weight:700; color:var(--deep); margin-top:4px; font-family:'Fraunces',serif;}
+
+.tabs-nav{display:flex; gap:10px; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:12px;}
+.tab-link{padding:8px 18px; border-radius:6px; font-size:14px; font-weight:600; color:var(--soft); cursor:pointer; background:transparent; border:none; transition:all .15s;}
+.tab-link.active{background:var(--deep); color:#fff;}
+
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+.card{background:#fff; border:1px solid var(--border); border-radius:10px; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.02); margin-bottom:20px;}
+.card-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;}
+.card-title{font-size:18px; color:var(--ink); font-weight:600;}
+
+/* Sub filters */
+.filter-bar{display:flex; gap:8px; margin-bottom:16px;}
+.filter-btn{padding:5px 12px; border-radius:20px; font-size:12px; font-weight:600; border:1px solid var(--border); background:#fff; cursor:pointer;}
+.filter-btn.active{background:var(--deep); color:#fff; border-color:var(--deep);}
+
+/* Tables */
+table{width:100%; border-collapse:collapse; text-align:left; font-size:14px;}
+th, td{padding:12px 14px; border-bottom:1px solid var(--border); vertical-align:middle;}
+th{background:#F8FAFC; color:var(--soft); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;}
+
+/* Badges */
+.badge{display:inline-block; padding:3px 8px; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase;}
+.badge-pending{background:#FEF3C7; color:#B45309;}
+.badge-approved{background:#E0E7FF; color:#4338CA;}
+.badge-completed{background:#DCFCE7; color:#15803D;}
+.badge-rejected{background:#FEE2E2; color:#B91C1C;}
+.badge-rescheduled{background:#EDE9FE; color:#6D28D9;}
+.badge-paid{background:#1F8A55; color:#fff;}
+
+/* Buttons */
+.btn{display:inline-block; padding:6px 12px; border-radius:5px; font-size:12px; font-weight:600; cursor:pointer; border:none; text-align:center;}
+.btn-primary{background:var(--deep); color:#fff;}
+.btn-primary:hover{background:#166534;}
+.btn-success{background:#16A34A; color:#fff;}
+.btn-success:hover{background:#15803D;}
+.btn-outline{background:#fff; border:1px solid var(--border); color:var(--ink);}
+.btn-outline:hover{background:#F8FAFC;}
+.btn-danger{background:#FEE2E2; color:#B91C1C; border:1px solid #FECACA;}
+.btn-action-group{display:flex; gap:6px; flex-wrap:wrap;}
+
+/* Modal Backdrop & Dialog */
+.modal-backdrop{display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center;}
+.modal-box{background:#fff; border-radius:10px; max-width:480px; width:90%; padding:24px; box-shadow:0 10px 25px rgba(0,0,0,0.15);}
+.modal-title{font-size:18px; margin-bottom:12px; font-family:'Fraunces',serif;}
+.modal-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:20px;}
+
+.alert{padding:12px 16px; border-radius:8px; font-size:13px; margin-bottom:16px; display:none;}
+.alert-success{background:#F0FDF4; border:1px solid #BBF7D0; color:#15803D;}
+.alert-error{background:#FEF2F2; border:1px solid #FECACA; color:#B91C1C;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><a href="../index.html"><span>◐</span> DentaCore</a></div>
+  <div class="user-bar">
+    <div id="doctorGreet" style="font-size:14px; font-weight:600;">Dr. Amara Sterling</div>
+    <span class="user-badge">DOCTOR</span>
+    <button class="btn-logout" onclick="logout()">Sign Out</button>
+  </div>
+</header>
+
+<div class="container">
+  <div id="statusAlert" class="alert"></div>
+
+  <!-- KPI Row -->
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-label">Pending Approval</div><div class="kpi-val" id="kpiPending">0</div></div>
+    <div class="kpi-card"><div class="kpi-label">Today's Visits</div><div class="kpi-val" id="kpiToday">0</div></div>
+    <div class="kpi-card"><div class="kpi-label">Completed Consultations</div><div class="kpi-val" id="kpiCompleted">0</div></div>
+    <div class="kpi-card"><div class="kpi-label">Patients in Roster</div><div class="kpi-val" id="kpiPatients">0</div></div>
+  </div>
+
+  <div class="tabs-nav">
+    <button class="tab-link active" onclick="switchTab('queue')">📋 Appointment Queue</button>
+    <button class="tab-link" onclick="switchTab('patients')">👥 Patient History</button>
+    <button class="tab-link" onclick="switchTab('schedule')">🕒 Working Schedule</button>
+    <button class="tab-link" onclick="switchTab('logs')">📜 Clinical Audit Trail</button>
+  </div>
+
+  <!-- TAB 1: QUEUE -->
+  <div id="tab-queue" class="tab-content active">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Patient Consultations & Approval Requests</span>
+        <button class="btn btn-outline" onclick="loadQueue()">↻ Refresh</button>
+      </div>
+
+      <div class="filter-bar">
+        <button class="filter-btn active" onclick="filterQueue(null, this)">All</button>
+        <button class="filter-btn" onclick="filterQueue('Pending', this)">⏳ Pending Approval</button>
+        <button class="filter-btn" onclick="filterQueue('Approved', this)">📅 Confirmed</button>
+        <button class="filter-btn" onclick="filterQueue('Today', this)">☀️ Today</button>
+        <button class="filter-btn" onclick="filterQueue('Completed', this)">✓ Completed</button>
+      </div>
+
+      <div id="queueTableContainer">Loading queue...</div>
+    </div>
+  </div>
+
+  <!-- TAB 2: PATIENTS -->
+  <div id="tab-patients" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Patient Directory & Clinical History</span>
+        <button class="btn btn-outline" onclick="loadPatients()">↻ Refresh</button>
+      </div>
+      <div id="patientsTableContainer">Loading patients...</div>
+    </div>
+  </div>
+
+  <!-- TAB 3: SCHEDULE -->
+  <div id="tab-schedule" class="tab-content">
+    <div class="card" style="max-width:680px;">
+      <h3 class="card-title" style="margin-bottom:12px;">Weekly Recurring Availability Slots</h3>
+      <p style="font-size:13px; color:var(--soft); margin-bottom:20px;">Configure your clinical hours. The system automatically computes 30-min available slots for booking.</p>
+      
+      <div id="scheduleListContainer">Loading schedule...</div>
+      <div style="margin-top:20px;">
+        <button class="btn btn-primary" onclick="saveDoctorSchedule()" style="padding:10px 20px;">Save Schedule Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: AUDIT LOGS -->
+  <div id="tab-logs" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">My Actions & Patient State Change Logs</span>
+        <button class="btn btn-outline" onclick="loadLogs()">↻ Refresh</button>
+      </div>
+      <div id="logsTableContainer">Loading logs...</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: APPROVE APPOINTMENT -->
+<div id="modalApprove" class="modal-backdrop">
+  <div class="modal-box">
+    <h3 class="modal-title">Confirm & Approve Appointment</h3>
+    <p style="font-size:13px; color:var(--soft); margin-bottom:16px;">Approve this patient visit and auto-generate an initial receipt.</p>
+    
+    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Confirmed Date & Time</label>
+    <input type="datetime-local" id="approveDateTime" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; margin-bottom:14px;">
+
+    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Consultation Fee ($)</label>
+    <input type="number" step="0.01" id="approveFee" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; margin-bottom:14px;">
+
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalApprove')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitApprove()">Approve & Prepare Receipt</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: REJECT APPOINTMENT -->
+<div id="modalReject" class="modal-backdrop">
+  <div class="modal-box">
+    <h3 class="modal-title">Decline Appointment Request</h3>
+    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Reason for Rejection (required)</label>
+    <textarea id="rejectReason" rows="3" placeholder="e.g. Doctor is out for conference, schedule fully booked..." style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; font-family:'Inter',sans-serif;"></textarea>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalReject')">Cancel</button>
+      <button class="btn btn-danger" onclick="submitReject()">Decline Visit</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: RECORD DIAGNOSIS -->
+<div id="modalDiagnosis" class="modal-backdrop">
+  <div class="modal-box">
+    <h3 class="modal-title">Record Clinical Diagnosis</h3>
+    <p style="font-size:13px; color:var(--soft); margin-bottom:16px;">Attach condition and prescriptions to this visit. Sets status to Completed.</p>
+    
+    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Disease / Condition Name</label>
+    <input type="text" id="diagDisease" placeholder="e.g. Dental Caries (Tooth #14), Gingivitis..." style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; margin-bottom:14px;">
+
+    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Clinical Notes</label>
+    <textarea id="diagNotes" rows="2" placeholder="Clinical findings, procedure summary..." style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; margin-bottom:14px; font-family:'Inter',sans-serif;"></textarea>
+
+    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Prescription / Treatment Plan</label>
+    <textarea id="diagPrescription" rows="2" placeholder="e.g. Amoxicillin 500mg tid x 7d, Chlorhexidine rinse..." style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; font-family:'Inter',sans-serif;"></textarea>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalDiagnosis')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitDiagnosis()">Save Diagnosis & Complete Visit</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: MARK PAYMENT PAID -->
+<div id="modalPayment" class="modal-backdrop">
+  <div class="modal-box">
+    <h3 class="modal-title">Record Settlement (Mark as Paid)</h3>
+    <p style="font-size:13px; color:var(--soft); margin-bottom:16px;">Instantly updates receipt to PAID and notifies the patient.</p>
+    
+    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Amount Paid ($)</label>
+    <input type="number" step="0.01" id="payAmount" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; margin-bottom:14px;">
+
+    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Payment Method</label>
+    <select id="payMethod" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; margin-bottom:14px;">
+      <option value="Cash">Cash</option>
+      <option value="Card">Card</option>
+      <option value="Online">Online / Transfer</option>
+    </select>
+
+    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Transaction Reference (Optional)</label>
+    <input type="text" id="payRef" placeholder="e.g. TXN-94821" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px;">
+
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalPayment')">Cancel</button>
+      <button class="btn btn-success" onclick="submitPayment()">Confirm Settlement</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = window.location.origin;
+let currentApptId = null;
+let currentFilterStatus = null;
+
+const token = localStorage.getItem('dentacore_token');
+const userStr = localStorage.getItem('dentacore_user');
+if (!token || !userStr) {
+  window.location.href = '../login.html';
+}
+
+const user = JSON.parse(userStr);
+if (user.role !== 'Doctor') {
+  alert('Unauthorized: Doctor role required.');
+  window.location.href = '../login.html';
+}
+document.getElementById('doctorGreet').innerText = user.fullName;
+
+function logout() {
+  localStorage.clear();
+  window.location.href = '../login.html';
+}
+
+function showMsg(text, isSuccess = true) {
+  const el = document.getElementById('statusAlert');
+  el.className = 'alert ' + (isSuccess ? 'alert-success' : 'alert-error');
+  el.innerText = text;
+  el.style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(() => el.style.display = 'none', 6000);
+}
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  
+  event.target.classList.add('active');
+  document.getElementById(`tab-${tabId}`).classList.add('active');
+
+  if (tabId === 'queue') loadQueue();
+  if (tabId === 'patients') loadPatients();
+  if (tabId === 'schedule') loadSchedule();
+  if (tabId === 'logs') loadLogs();
+}
+
+function openModal(id, apptId = null) {
+  currentApptId = apptId;
+  document.getElementById(id).style.display = 'flex';
+}
+
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+// 1. Load Queue
+async function loadQueue() {
+  const container = document.getElementById('queueTableContainer');
+  let url = `${API_BASE}/api/v1/appointments/doctor/me`;
+  if (currentFilterStatus) url += `?status=${currentFilterStatus}`;
+
+  try {
+    const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+    const list = await res.json();
+
+    // Update KPIs
+    const pendingCount = list.filter(a => a.status === 'Pending').length;
+    const completedCount = list.filter(a => a.status === 'Completed').length;
+    document.getElementById('kpiPending').innerText = pendingCount;
+    document.getElementById('kpiCompleted').innerText = completedCount;
+
+    if (!list.length) {
+      container.innerHTML = '<p style="color:var(--soft); padding:16px 0;">No appointments found for current filter.</p>';
+      return;
+    }
+
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Requested / Confirmed</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Receipt / Settlement</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(a => {
+            const dateStr = a.confirmedDateTime
+              ? `<b style="color:var(--deep);">${new Date(a.confirmedDateTime).toLocaleString()}</b> (Confirmed)`
+              : `${new Date(a.requestedDateTime).toLocaleString()} (Requested)`;
+
+            let payBadge = '-';
+            if (a.receiptId) {
+              payBadge = a.paymentStatus === 'Paid'
+                ? '<span class="badge badge-paid">PAID</span>'
+                : '<span class="badge badge-pending">PENDING</span>';
+            }
+
+            let actions = [];
+            if (a.status === 'Pending') {
+              actions.push(`<button class="btn btn-primary" onclick="initApprove('${a.id}','${a.requestedDateTime}',${a.consultationFee})">Approve</button>`);
+              actions.push(`<button class="btn btn-danger" onclick="openModal('modalReject','${a.id}')">Decline</button>`);
+            }
+            if (a.status === 'Approved') {
+              actions.push(`<button class="btn btn-primary" onclick="openModal('modalDiagnosis','${a.id}')">🩺 Record Diagnosis</button>`);
+            }
+            if (a.receiptId && a.paymentStatus !== 'Paid') {
+              actions.push(`<button class="btn btn-success" onclick="initPayment('${a.id}',${a.consultationFee})">💰 Mark Paid</button>`);
+            }
+            if (a.receiptId) {
+              actions.push(`<button class="btn btn-outline" onclick="downloadReceipt('${a.id}')">📄 PDF</button>`);
+            }
+
+            return `
+              <tr>
+                <td>
+                  <b>${a.patientName}</b><br>
+                  <small style="color:var(--soft);">${a.patientPhone} · ${a.patientEmail}</small>
+                </td>
+                <td>${dateStr}</td>
+                <td><small>${a.reasonForVisit || 'Regular consultation'}</small></td>
+                <td><span class="badge badge-${a.status.toLowerCase()}">${a.status}</span></td>
+                <td>${payBadge}</td>
+                <td><div class="btn-action-group">${actions.join(' ')}</div></td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    container.innerHTML = `<p style="color:var(--red);">Error loading queue: ${err.message}</p>`;
+  }
+}
+
+function filterQueue(status, btn) {
+  currentFilterStatus = status;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadQueue();
+}
+
+function initApprove(id, reqDateIso, fee) {
+  currentApptId = id;
+  const d = new Date(reqDateIso);
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  document.getElementById('approveDateTime').value = d.toISOString().slice(0,16);
+  document.getElementById('approveFee').value = fee;
+  openModal('modalApprove', id);
+}
+
+async function submitApprove() {
+  const dt = document.getElementById('approveDateTime').value;
+  const fee = parseFloat(document.getElementById('approveFee').value);
+  if (!dt) return alert('Select confirmed date & time.');
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/appointments/${currentApptId}/approve`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ confirmedDateTime: new Date(dt).toISOString(), amount: fee })
+    });
+    if (!res.ok) throw new Error('Failed to approve appointment.');
+    closeModal('modalApprove');
+    showMsg('Appointment approved & receipt auto-created!');
+    loadQueue();
+  } catch (err) {
+    showMsg(err.message, false);
+  }
+}
+
+async function submitReject() {
+  const reason = document.getElementById('rejectReason').value.trim();
+  if (!reason) return alert('Please enter a rejection reason.');
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/appointments/${currentApptId}/reject`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ reason })
+    });
+    if (!res.ok) throw new Error('Failed to reject appointment.');
+    closeModal('modalReject');
+    showMsg('Appointment rejected.');
+    loadQueue();
+  } catch (err) {
+    showMsg(err.message, false);
+  }
+}
+
+async function submitDiagnosis() {
+  const disease = document.getElementById('diagDisease').value.trim();
+  const notes = document.getElementById('diagNotes').value.trim();
+  const prescription = document.getElementById('diagPrescription').value.trim();
+  if (!disease) return alert('Please enter disease/condition name.');
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/appointments/${currentApptId}/diagnosis`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ diseaseName: disease, notes, prescription })
+    });
+    if (!res.ok) throw new Error('Failed to save diagnosis.');
+    closeModal('modalDiagnosis');
+    showMsg('Diagnosis saved and visit marked as Completed!');
+    loadQueue();
+  } catch (err) {
+    showMsg(err.message, false);
+  }
+}
+
+function initPayment(id, fee) {
+  currentApptId = id;
+  document.getElementById('payAmount').value = fee;
+  openModal('modalPayment', id);
+}
+
+async function submitPayment() {
+  const amount = parseFloat(document.getElementById('payAmount').value);
+  const method = document.getElementById('payMethod').value;
+  const ref = document.getElementById('payRef').value.trim();
+  if (!amount || amount <= 0) return alert('Enter valid payment amount.');
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/receipts/${currentApptId}/mark-paid`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({
+        amountPaid: amount,
+        paymentMethod: method,
+        transactionRef: ref || null
+      })
+    });
+    if (!res.ok) throw new Error('Payment settlement failed.');
+    closeModal('modalPayment');
+    showMsg('Payment recorded! Receipt updated with PAID status and patient notified.');
+    loadQueue();
+  } catch (err) {
+    showMsg(err.message, false);
+  }
+}
+
+function downloadReceipt(apptId) {
+  window.open(`${API_BASE}/api/v1/receipts/${apptId}/download?access_token=${token}`, '_blank');
+}
+
+// 2. Load Patients
+async function loadPatients() {
+  const container = document.getElementById('patientsTableContainer');
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/doctors/me/patients`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const patients = await res.json();
+    document.getElementById('kpiPatients').innerText = patients.length;
+
+    if (!patients.length) {
+      container.innerHTML = '<p style="color:var(--soft); padding:16px 0;">No patients have booked with you yet.</p>';
+      return;
+    }
+
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Patient Name</th>
+            <th>Contact Details</th>
+            <th>Blood Group & History</th>
+            <th>Total Visits</th>
+            <th>Last Visit</th>
+            <th>Past Diagnoses</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${patients.map(p => `
+            <tr>
+              <td><b>${p.fullName}</b></td>
+              <td>${p.email}<br><small style="color:var(--soft);">${p.phoneNumber}</small></td>
+              <td>
+                <span class="badge" style="background:#E2E8F0;">${p.bloodGroup || 'N/A'}</span>
+                <br><small style="color:var(--soft);">${p.medicalHistory || 'None noted'}</small>
+              </td>
+              <td><b>${p.totalVisits}</b></td>
+              <td>${new Date(p.lastVisit).toLocaleDateString()}</td>
+              <td><small>${p.diagnoses.length ? p.diagnoses.join(', ') : 'None'}</small></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    container.innerHTML = `<p style="color:var(--red);">Error loading patients: ${err.message}</p>`;
+  }
+}
+
+// 3. Load Schedule
+async function loadSchedule() {
+  const container = document.getElementById('scheduleListContainer');
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/doctors/me/schedule`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const schedules = await res.json();
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+    container.innerHTML = days.map(d => {
+      const s = schedules.find(x => x.dayOfWeek === d) || { startTime: '09:00', endTime: '17:00', slotDurationMinutes: 30, isActive: false };
+      return `
+        <div style="display:grid; grid-template-columns:120px 1fr 1fr 100px 80px; gap:12px; align-items:center; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid #f1f5f9;">
+          <b>${d}</b>
+          <div><small style="color:var(--soft);">Start:</small><input type="time" class="sched-start" data-day="${d}" value="${s.startTime}" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:4px;"></div>
+          <div><small style="color:var(--soft);">End:</small><input type="time" class="sched-end" data-day="${d}" value="${s.endTime}" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:4px;"></div>
+          <div><small style="color:var(--soft);">Slot (min):</small><input type="number" class="sched-dur" data-day="${d}" value="${s.slotDurationMinutes || 30}" style="width:100%; padding:6px; border:1px solid var(--border); border-radius:4px;"></div>
+          <div style="text-align:center;"><small style="color:var(--soft);">Active</small><br><input type="checkbox" class="sched-active" data-day="${d}" ${s.isActive ? 'checked' : ''} style="width:18px; height:18px;"></div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    container.innerHTML = `<p style="color:var(--red);">Error loading schedule: ${err.message}</p>`;
+  }
+}
+
+async function saveDoctorSchedule() {
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const schedules = [];
+
+  days.forEach(d => {
+    const start = document.querySelector(`.sched-start[data-day="${d}"]`).value;
+    const end = document.querySelector(`.sched-end[data-day="${d}"]`).value;
+    const dur = parseInt(document.querySelector(`.sched-dur[data-day="${d}"]`).value) || 30;
+    const active = document.querySelector(`.sched-active[data-day="${d}"]`).checked;
+
+    schedules.push({
+      dayOfWeek: d,
+      startTime: start,
+      endTime: end,
+      slotDurationMinutes: dur,
+      isActive: active
+    });
+  });
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/doctors/me/schedule`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ schedules })
+    });
+    if (!res.ok) throw new Error('Failed to update schedule.');
+    showMsg('Clinic schedule updated successfully.');
+  } catch (err) {
+    showMsg(err.message, false);
+  }
+}
+
+// 4. Load Logs
+async function loadLogs() {
+  const container = document.getElementById('logsTableContainer');
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/audit-logs/doctor/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const logs = await res.json();
+
+    if (!logs.length) {
+      container.innerHTML = '<p style="color:var(--soft); padding:16px 0;">No audit records logged yet.</p>';
+      return;
+    }
+
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Action</th>
+            <th>Entity</th>
+            <th>Details (Old / New)</th>
+            <th>IP Address</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${logs.map(l => `
+            <tr>
+              <td class="mono" style="font-size:12px;">${new Date(l.createdAt).toLocaleString()}</td>
+              <td><span class="badge" style="background:#E2E8F0;">${l.action}</span></td>
+              <td><b>${l.entityName}</b></td>
+              <td style="max-width:340px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px;" title="${l.newValue || l.oldValue}">
+                ${l.newValue || l.oldValue || '-'}
+              </td>
+              <td class="mono" style="font-size:11px; color:var(--soft);">${l.ipAddress || '-'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    container.innerHTML = `<p style="color:var(--red);">Error loading audit logs: ${err.message}</p>`;
+  }
+}
+
+// Initial
+loadQueue();
+</script>
+</body>
+</html>
