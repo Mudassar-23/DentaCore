@@ -85,7 +85,14 @@ public class AppointmentsController : ControllerBase
     public async Task<IActionResult> GetMyAppointments()
     {
         var patientId = _currentUserService.PatientId;
-        if (!patientId.HasValue) return Forbid();
+        if (!patientId.HasValue && _currentUserService.UserId.HasValue)
+        {
+            var p = await _context.Patients.FirstOrDefaultAsync(x => x.UserId == _currentUserService.UserId.Value);
+            patientId = p?.Id;
+        }
+
+        if (!patientId.HasValue)
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "Patient profile not found for this account." });
 
         var list = await _context.Appointments
             .Include(a => a.Doctor)
@@ -131,7 +138,14 @@ public class AppointmentsController : ControllerBase
     public async Task<IActionResult> GetDoctorQueue([FromQuery] string? status)
     {
         var doctorId = _currentUserService.DoctorId;
-        if (!doctorId.HasValue) return Forbid();
+        if (!doctorId.HasValue && _currentUserService.UserId.HasValue)
+        {
+            var doc = await _context.Doctors.FirstOrDefaultAsync(d => d.UserId == _currentUserService.UserId.Value);
+            doctorId = doc?.Id;
+        }
+
+        if (!doctorId.HasValue)
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "Doctor profile not found for this account." });
 
         var query = _context.Appointments
             .Include(a => a.Patient)
@@ -246,11 +260,11 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpPut("{id:guid}/approve")]
-    [Authorize(Roles = AppRoles.Doctor)]
+    [Authorize(Roles = $"{AppRoles.Doctor},{AppRoles.Admin}")]
     public async Task<IActionResult> ApproveAppointment(Guid id, [FromBody] ApproveAppointmentDto request)
     {
+        var role = _currentUserService.Role;
         var doctorId = _currentUserService.DoctorId;
-        if (!doctorId.HasValue) return Forbid();
 
         var appt = await _context.Appointments
             .Include(a => a.Doctor)
@@ -259,7 +273,9 @@ public class AppointmentsController : ControllerBase
             .FirstOrDefaultAsync(a => a.Id == id);
 
         if (appt == null) return NotFound(new { message = "Appointment not found." });
-        if (appt.DoctorId != doctorId.Value) return Forbid();
+
+        if (role == AppRoles.Doctor && (!doctorId.HasValue || appt.DoctorId != doctorId.Value))
+            return Forbid();
 
         if (appt.Status != AppointmentStatus.Pending && appt.Status != AppointmentStatus.Rescheduled)
         {
@@ -296,18 +312,20 @@ public class AppointmentsController : ControllerBase
     }
 
     [HttpPut("{id:guid}/reject")]
-    [Authorize(Roles = AppRoles.Doctor)]
+    [Authorize(Roles = $"{AppRoles.Doctor},{AppRoles.Admin}")]
     public async Task<IActionResult> RejectAppointment(Guid id, [FromBody] RejectAppointmentDto request)
     {
+        var role = _currentUserService.Role;
         var doctorId = _currentUserService.DoctorId;
-        if (!doctorId.HasValue) return Forbid();
 
         var appt = await _context.Appointments
             .Include(a => a.Patient)
             .FirstOrDefaultAsync(a => a.Id == id);
 
         if (appt == null) return NotFound(new { message = "Appointment not found." });
-        if (appt.DoctorId != doctorId.Value) return Forbid();
+
+        if (role == AppRoles.Doctor && (!doctorId.HasValue || appt.DoctorId != doctorId.Value))
+            return Forbid();
 
         appt.Status = AppointmentStatus.Rejected;
         appt.RejectionReason = request.Reason;

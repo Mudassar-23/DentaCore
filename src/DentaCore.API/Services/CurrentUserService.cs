@@ -33,7 +33,7 @@ public class CurrentUserService : ICurrentUserService
         get
         {
             var doctorIdClaim = HttpContext?.User.FindFirstValue("doctorId") ?? HttpContext?.User.FindFirstValue("profileId");
-            if (Role == AppRoles.Doctor && Guid.TryParse(doctorIdClaim, out var id))
+            if (string.Equals(Role, AppRoles.Doctor, StringComparison.OrdinalIgnoreCase) && Guid.TryParse(doctorIdClaim, out var id))
                 return id;
             return null;
         }
@@ -44,7 +44,7 @@ public class CurrentUserService : ICurrentUserService
         get
         {
             var patientIdClaim = HttpContext?.User.FindFirstValue("patientId") ?? HttpContext?.User.FindFirstValue("profileId");
-            if (Role == AppRoles.Patient && Guid.TryParse(patientIdClaim, out var id))
+            if (string.Equals(Role, AppRoles.Patient, StringComparison.OrdinalIgnoreCase) && Guid.TryParse(patientIdClaim, out var id))
                 return id;
             return null;
         }

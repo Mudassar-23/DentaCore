@@ -160,7 +160,14 @@ public class DoctorsController : ControllerBase
     public async Task<IActionResult> GetMySchedule()
     {
         var doctorId = _currentUserService.DoctorId;
-        if (!doctorId.HasValue) return Forbid();
+        if (!doctorId.HasValue && _currentUserService.UserId.HasValue)
+        {
+            var doc = await _context.Doctors.FirstOrDefaultAsync(d => d.UserId == _currentUserService.UserId.Value);
+            doctorId = doc?.Id;
+        }
+
+        if (!doctorId.HasValue)
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "Doctor profile not found for this account." });
 
         var schedules = await _context.DoctorSchedules
             .Where(s => s.DoctorId == doctorId.Value)
@@ -184,7 +191,14 @@ public class DoctorsController : ControllerBase
     public async Task<IActionResult> UpdateMySchedule([FromBody] UpdateDoctorScheduleRequest request)
     {
         var doctorId = _currentUserService.DoctorId;
-        if (!doctorId.HasValue) return Forbid();
+        if (!doctorId.HasValue && _currentUserService.UserId.HasValue)
+        {
+            var doc = await _context.Doctors.FirstOrDefaultAsync(d => d.UserId == _currentUserService.UserId.Value);
+            doctorId = doc?.Id;
+        }
+
+        if (!doctorId.HasValue)
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "Doctor profile not found for this account." });
 
         var existingSchedules = await _context.DoctorSchedules
             .Where(s => s.DoctorId == doctorId.Value)
@@ -217,7 +231,14 @@ public class DoctorsController : ControllerBase
     public async Task<IActionResult> GetMyPatients()
     {
         var doctorId = _currentUserService.DoctorId;
-        if (!doctorId.HasValue) return Forbid();
+        if (!doctorId.HasValue && _currentUserService.UserId.HasValue)
+        {
+            var doc = await _context.Doctors.FirstOrDefaultAsync(d => d.UserId == _currentUserService.UserId.Value);
+            doctorId = doc?.Id;
+        }
+
+        if (!doctorId.HasValue)
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "Doctor profile not found for this account." });
 
         var appointments = await _context.Appointments
             .Include(a => a.Patient)

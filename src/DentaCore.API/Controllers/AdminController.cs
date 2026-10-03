@@ -32,7 +32,12 @@ public class AdminController : ControllerBase
 
         var receipts = await _context.Receipts.ToListAsync();
         var totalRevenue = receipts.Where(r => r.PaymentStatus == PaymentStatus.Paid).Sum(r => r.Amount);
-        var pendingRevenue = receipts.Where(r => r.PaymentStatus == PaymentStatus.Pending).Sum(r => r.Amount);
+        var pendingReceiptsAmount = receipts.Where(r => r.PaymentStatus == PaymentStatus.Pending).Sum(r => r.Amount);
+        var pendingApptsAmount = await _context.Appointments
+            .Where(a => a.Receipt == null && a.Status == AppointmentStatus.Pending)
+            .Include(a => a.Doctor)
+            .SumAsync(a => a.Doctor.ConsultationFee);
+        var pendingRevenue = pendingReceiptsAmount + pendingApptsAmount;
 
         return Ok(new
         {

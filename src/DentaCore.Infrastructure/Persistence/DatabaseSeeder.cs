@@ -117,18 +117,22 @@ public class DatabaseSeeder
         }
 
         // 3. Seed Demo Patient
-        var patientEmail = "patient@dentacore.local";
+        var patientEmail = _configuration["PATIENT_EMAIL"] ?? "patient@dentacore.local";
         var patientUser = await _context.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email == patientEmail);
 
         if (patientUser == null)
         {
-            _logger.LogInformation("Seeding default Demo Patient account: {Email}", patientEmail);
+            _logger.LogInformation("Seeding default Patient account: {Email}", patientEmail);
+            var patientPassword = _configuration["PATIENT_PASSWORD"] ?? "Patient@12345!";
+            var patientName = _configuration["PATIENT_FULLNAME"] ?? "Jane Doe";
+            var patientPhone = _configuration["PATIENT_PHONE"] ?? "+15552345678";
+
             patientUser = new User
             {
-                FullName = "Jane Doe",
+                FullName = patientName,
                 Email = patientEmail,
-                PhoneNumber = "+15552345678",
-                PasswordHash = _passwordHasher.HashPassword("Patient@12345!"),
+                PhoneNumber = patientPhone,
+                PasswordHash = _passwordHasher.HashPassword(patientPassword),
                 Role = UserRole.Patient,
                 EmailConfirmed = true,
                 IsActive = true

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -41,12 +41,6 @@ a{color:inherit; text-decoration:none;}
 .form-box h2{font-size:28px; margin-bottom:6px;}
 .form-box .sub{color:var(--soft); font-size:14px; margin-bottom:24px;}
 
-/* Quick Demo Bar */
-.demo-bar{background:var(--off); border:1px solid #e0e0da; border-radius:8px; padding:12px 14px; margin-bottom:24px;}
-.demo-bar .demo-title{font-size:11px; font-weight:700; color:var(--deep); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;}
-.demo-buttons{display:flex; gap:6px;}
-.btn-demo{flex:1; padding:6px 4px; font-size:11px; font-weight:600; border:1px solid #cbd5e1; border-radius:4px; background:#fff; cursor:pointer; color:var(--mark); transition:all 0.15s;}
-.btn-demo:hover{background:var(--deep); color:#fff; border-color:var(--deep);}
 
 /* Auth Mode Toggle (Sign In vs Register) */
 .auth-mode{display:flex; border-bottom:2px solid #e5e5e0; margin-bottom:20px;}
@@ -98,16 +92,6 @@ input:focus, select:focus{outline:none; border-color:var(--green); box-shadow:0 
       <h2 id="formTitle">Sign in to DentaCore</h2>
       <p class="sub" id="formSubtitle">Enter your credentials to access your portal.</p>
 
-      <!-- Quick Demo Login Bar -->
-      <div class="demo-bar">
-        <div class="demo-title">⚡ Instant Demo Logins:</div>
-        <div class="demo-buttons">
-          <button class="btn-demo" type="button" onclick="fillDemo('patient@dentacore.local','Patient@12345!')">👤 Patient</button>
-          <button class="btn-demo" type="button" onclick="fillDemo('doctor@dentacore.local','Doctor@12345!')">🩺 Doctor</button>
-          <button class="btn-demo" type="button" onclick="fillDemo('admin@dentacore.local','Admin@12345!')">🛡️ Admin</button>
-        </div>
-      </div>
-
       <div class="auth-mode">
         <button type="button" class="active" id="tabSignIn" onclick="switchAuthMode('signin')">Sign In</button>
         <button type="button" id="tabRegister" onclick="switchAuthMode('register')">Patient Register</button>
@@ -118,7 +102,7 @@ input:focus, select:focus{outline:none; border-color:var(--green); box-shadow:0 
       <!-- Sign In Form -->
       <form id="signInForm" onsubmit="handleSignIn(event)">
         <label for="loginEmail">Email address</label>
-        <input id="loginEmail" type="email" placeholder="you@dentacore.local" required autocomplete="username">
+        <input id="loginEmail" type="email" placeholder="name@example.com" required autocomplete="username">
 
         <label for="loginPass">Password</label>
         <input id="loginPass" type="password" placeholder="••••••••" required autocomplete="current-password">
@@ -182,13 +166,6 @@ function switchAuthMode(mode) {
   document.getElementById('registerForm').style.display = isSignIn ? 'none' : 'block';
   document.getElementById('formTitle').innerText = isSignIn ? 'Sign in to DentaCore' : 'Create Patient Account';
   document.getElementById('formSubtitle').innerText = isSignIn ? 'Enter your credentials to access your portal.' : 'Register as a new patient to book consultations.';
-  hideAlert();
-}
-
-function fillDemo(email, pass) {
-  switchAuthMode('signin');
-  document.getElementById('loginEmail').value = email;
-  document.getElementById('loginPass').value = pass;
   hideAlert();
 }
 

@@ -170,7 +170,14 @@ public class ReceiptsController : ControllerBase
     public async Task<IActionResult> GetMyReceipts()
     {
         var patientId = _currentUserService.PatientId;
-        if (!patientId.HasValue) return Forbid();
+        if (!patientId.HasValue && _currentUserService.UserId.HasValue)
+        {
+            var p = await _context.Patients.FirstOrDefaultAsync(x => x.UserId == _currentUserService.UserId.Value);
+            patientId = p?.Id;
+        }
+
+        if (!patientId.HasValue)
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = "Patient profile not found for this account." });
 
         var list = await _context.Receipts
             .Include(r => r.Payment)

@@ -22,26 +22,52 @@ public static class ServiceCollectionExtensions
         // Register interceptors
         services.AddScoped<AuditLogSaveChangesInterceptor>();
 
-        // Database Configuration: PostgreSQL with SQLite fallback
-        var provider = configuration["DATABASE_PROVIDER"] ?? configuration["Database:Provider"] ?? "SQLite";
+        // Database Configuration: PostgreSQL with automatic SQLite fallback
+        var providerSetting = configuration["DATABASE_PROVIDER"] ?? configuration["Database:Provider"];
+        var rawPg = configuration["DATABASE_URL"] ?? configuration["POSTGRES_CONNECTION"] ?? configuration.GetConnectionString("PostgreSQL");
+        var rawSqlite = configuration["SQLITE_CONNECTION"] ?? configuration["DATABASE_FALLBACK_URL"] ?? configuration.GetConnectionString("SQLite") ?? "Data Source=dentacore.db";
+
+        var postgresConn = DatabaseConnectionHelper.ToPostgreSqlConnectionString(rawPg);
+        var sqliteConn = DatabaseConnectionHelper.NormalizeSqliteConnectionString(rawSqlite);
+
+        bool usePostgres = false;
+        bool isExplicitSqlite = string.Equals(providerSetting, "SQLite", StringComparison.OrdinalIgnoreCase);
+
+        if (!isExplicitSqlite && (!string.IsNullOrWhiteSpace(rawPg) || string.Equals(providerSetting, "PostgreSQL", StringComparison.OrdinalIgnoreCase)))
+        {
+            Console.WriteLine("[Database] Testing connection to PostgreSQL...");
+            if (DatabaseConnectionHelper.CanConnectToPostgreSql(postgresConn, out var error, timeoutSeconds: 3))
+            {
+                usePostgres = true;
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("[Database] Successfully connected to PostgreSQL. Active provider: PostgreSQL");
+                Console.ResetColor();
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"[Database] PostgreSQL is unavailable ({error}). Auto-falling back to SQLite fallback: {sqliteConn}");
+                Console.ResetColor();
+            }
+        }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine($"[Database] Active provider: SQLite ({sqliteConn})");
+            Console.ResetColor();
+        }
 
         services.AddDbContext<ApplicationDbContext>((sp, options) =>
         {
             var interceptor = sp.GetRequiredService<AuditLogSaveChangesInterceptor>();
             options.AddInterceptors(interceptor);
 
-            if (string.Equals(provider, "PostgreSQL", StringComparison.OrdinalIgnoreCase))
+            if (usePostgres)
             {
-                var postgresConn = configuration["POSTGRES_CONNECTION"]
-                                ?? configuration.GetConnectionString("PostgreSQL")
-                                ?? "Host=localhost;Port=5432;Database=dentacore_db;Username=dentacore_user;Password=YourStrongPassword123!;";
                 options.UseNpgsql(postgresConn);
             }
             else
             {
-                var sqliteConn = configuration["SQLITE_CONNECTION"]
-                              ?? configuration.GetConnectionString("SQLite")
-                              ?? "Data Source=dentacore.db";
                 options.UseSqlite(sqliteConn);
             }
         });

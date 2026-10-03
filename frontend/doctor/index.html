@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -263,16 +263,99 @@ if (!token || !userStr) {
   window.location.href = '../login.html';
 }
 
-const user = JSON.parse(userStr);
-if (user.role !== 'Doctor') {
+let user;
+try {
+  user = JSON.parse(userStr);
+} catch (e) {
+  localStorage.clear();
+  window.location.href = '../login.html';
+}
+
+if (!user || user.role !== 'Doctor') {
   alert('Unauthorized: Doctor role required.');
   window.location.href = '../login.html';
 }
-document.getElementById('doctorGreet').innerText = user.fullName;
+document.getElementById('doctorGreet').innerText = user ? user.fullName : 'Doctor';
 
 function logout() {
   localStorage.clear();
   window.location.href = '../login.html';
+}
+
+let isRefreshing = false;
+let refreshSubscribers = [];
+
+function onRefreshed(newToken) {
+  refreshSubscribers.forEach(cb => cb(newToken));
+  refreshSubscribers = [];
+}
+
+async function authFetch(url, options = {}) {
+  let currentToken = localStorage.getItem('dentacore_token');
+  if (!currentToken) {
+    window.location.href = '../login.html';
+    return null;
+  }
+
+  const defaultHeaders = {
+    'Authorization': `Bearer ${currentToken}`
+  };
+
+  options.headers = { ...defaultHeaders, ...(options.headers || {}) };
+
+  let res;
+  try {
+    res = await fetch(url, options);
+  } catch (netErr) {
+    throw new Error('Network error or server unreachable: ' + netErr.message);
+  }
+
+  if (res.status === 401) {
+    const refreshToken = localStorage.getItem('dentacore_refresh');
+    if (!refreshToken) {
+      localStorage.clear();
+      window.location.href = '../login.html';
+      return null;
+    }
+
+    if (!isRefreshing) {
+      isRefreshing = true;
+      try {
+        const refreshRes = await fetch(`${API_BASE}/api/v1/auth/refresh-token`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken })
+        });
+
+        if (refreshRes.ok) {
+          const data = await refreshRes.json();
+          localStorage.setItem('dentacore_token', data.accessToken);
+          localStorage.setItem('dentacore_refresh', data.refreshToken);
+          isRefreshing = false;
+          onRefreshed(data.accessToken);
+        } else {
+          isRefreshing = false;
+          localStorage.clear();
+          window.location.href = '../login.html';
+          return null;
+        }
+      } catch (e) {
+        isRefreshing = false;
+        localStorage.clear();
+        window.location.href = '../login.html';
+        return null;
+      }
+    }
+
+    const retryToken = await new Promise(resolve => {
+      refreshSubscribers.push(resolve);
+    });
+
+    options.headers['Authorization'] = `Bearer ${retryToken}`;
+    res = await fetch(url, options);
+  }
+
+  return res;
 }
 
 function showMsg(text, isSuccess = true) {
@@ -313,8 +396,16 @@ async function loadQueue() {
   if (currentFilterStatus) url += `?status=${currentFilterStatus}`;
 
   try {
-    const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
-    const list = await res.json();
+    const res = await authFetch(url);
+    if (!res) return;
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `Failed to load appointments queue (HTTP ${res.status}).`);
+    }
+
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : [];
 
     // Update KPIs
     const pendingCount = list.filter(a => a.status === 'Pending').length;
@@ -411,12 +502,16 @@ async function submitApprove() {
   if (!dt) return alert('Select confirmed date & time.');
 
   try {
-    const res = await fetch(`${API_BASE}/api/v1/appointments/${currentApptId}/approve`, {
+    const res = await authFetch(`${API_BASE}/api/v1/appointments/${currentApptId}/approve`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ confirmedDateTime: new Date(dt).toISOString(), amount: fee })
     });
-    if (!res.ok) throw new Error('Failed to approve appointment.');
+    if (!res) return;
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to approve appointment.');
+    }
     closeModal('modalApprove');
     showMsg('Appointment approved & receipt auto-created!');
     loadQueue();
@@ -430,12 +525,16 @@ async function submitReject() {
   if (!reason) return alert('Please enter a rejection reason.');
 
   try {
-    const res = await fetch(`${API_BASE}/api/v1/appointments/${currentApptId}/reject`, {
+    const res = await authFetch(`${API_BASE}/api/v1/appointments/${currentApptId}/reject`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ reason })
     });
-    if (!res.ok) throw new Error('Failed to reject appointment.');
+    if (!res) return;
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to reject appointment.');
+    }
     closeModal('modalReject');
     showMsg('Appointment rejected.');
     loadQueue();
@@ -451,12 +550,16 @@ async function submitDiagnosis() {
   if (!disease) return alert('Please enter disease/condition name.');
 
   try {
-    const res = await fetch(`${API_BASE}/api/v1/appointments/${currentApptId}/diagnosis`, {
+    const res = await authFetch(`${API_BASE}/api/v1/appointments/${currentApptId}/diagnosis`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ diseaseName: disease, notes, prescription })
     });
-    if (!res.ok) throw new Error('Failed to save diagnosis.');
+    if (!res) return;
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to save diagnosis.');
+    }
     closeModal('modalDiagnosis');
     showMsg('Diagnosis saved and visit marked as Completed!');
     loadQueue();
@@ -478,16 +581,20 @@ async function submitPayment() {
   if (!amount || amount <= 0) return alert('Enter valid payment amount.');
 
   try {
-    const res = await fetch(`${API_BASE}/api/v1/receipts/${currentApptId}/mark-paid`, {
+    const res = await authFetch(`${API_BASE}/api/v1/receipts/${currentApptId}/mark-paid`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         amountPaid: amount,
         paymentMethod: method,
         transactionRef: ref || null
       })
     });
-    if (!res.ok) throw new Error('Payment settlement failed.');
+    if (!res) return;
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Payment settlement failed.');
+    }
     closeModal('modalPayment');
     showMsg('Payment recorded! Receipt updated with PAID status and patient notified.');
     loadQueue();
@@ -497,17 +604,22 @@ async function submitPayment() {
 }
 
 function downloadReceipt(apptId) {
-  window.open(`${API_BASE}/api/v1/receipts/${apptId}/download?access_token=${token}`, '_blank');
+  const currentToken = localStorage.getItem('dentacore_token');
+  window.open(`${API_BASE}/api/v1/receipts/${apptId}/download?access_token=${currentToken}`, '_blank');
 }
 
 // 2. Load Patients
 async function loadPatients() {
   const container = document.getElementById('patientsTableContainer');
   try {
-    const res = await fetch(`${API_BASE}/api/v1/doctors/me/patients`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const patients = await res.json();
+    const res = await authFetch(`${API_BASE}/api/v1/doctors/me/patients`);
+    if (!res) return;
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `Failed to load patients (HTTP ${res.status}).`);
+    }
+    const data = await res.json();
+    const patients = Array.isArray(data) ? data : [];
     document.getElementById('kpiPatients').innerText = patients.length;
 
     if (!patients.length) {
@@ -553,10 +665,14 @@ async function loadPatients() {
 async function loadSchedule() {
   const container = document.getElementById('scheduleListContainer');
   try {
-    const res = await fetch(`${API_BASE}/api/v1/doctors/me/schedule`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const schedules = await res.json();
+    const res = await authFetch(`${API_BASE}/api/v1/doctors/me/schedule`);
+    if (!res) return;
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `Failed to load schedule (HTTP ${res.status}).`);
+    }
+    const data = await res.json();
+    const schedules = Array.isArray(data) ? data : [];
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
     container.innerHTML = days.map(d => {
@@ -596,12 +712,16 @@ async function saveDoctorSchedule() {
   });
 
   try {
-    const res = await fetch(`${API_BASE}/api/v1/doctors/me/schedule`, {
+    const res = await authFetch(`${API_BASE}/api/v1/doctors/me/schedule`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ schedules })
     });
-    if (!res.ok) throw new Error('Failed to update schedule.');
+    if (!res) return;
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to update schedule.');
+    }
     showMsg('Clinic schedule updated successfully.');
   } catch (err) {
     showMsg(err.message, false);
@@ -612,10 +732,14 @@ async function saveDoctorSchedule() {
 async function loadLogs() {
   const container = document.getElementById('logsTableContainer');
   try {
-    const res = await fetch(`${API_BASE}/api/v1/audit-logs/doctor/me`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const logs = await res.json();
+    const res = await authFetch(`${API_BASE}/api/v1/audit-logs/doctor/me`);
+    if (!res) return;
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `Failed to load audit logs (HTTP ${res.status}).`);
+    }
+    const data = await res.json();
+    const logs = Array.isArray(data) ? data : [];
 
     if (!logs.length) {
       container.innerHTML = '<p style="color:var(--soft); padding:16px 0;">No audit records logged yet.</p>';

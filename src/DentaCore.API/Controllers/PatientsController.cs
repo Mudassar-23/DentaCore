@@ -27,13 +27,41 @@ public class PatientsController : ControllerBase
     public async Task<IActionResult> GetMyProfile()
     {
         var patientId = _currentUserService.PatientId;
-        if (!patientId.HasValue) return Forbid();
+        var userId = _currentUserService.UserId;
 
-        var patient = await _context.Patients
-            .Include(p => p.User)
-            .FirstOrDefaultAsync(p => p.Id == patientId.Value);
+        Patient? patient = null;
+        if (patientId.HasValue)
+        {
+            patient = await _context.Patients
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(p => p.Id == patientId.Value);
+        }
 
-        if (patient == null) return NotFound(new { message = "Patient profile not found." });
+        if (patient == null && userId.HasValue)
+        {
+            patient = await _context.Patients
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(p => p.UserId == userId.Value);
+        }
+
+        // Auto-heal: If user has Patient role but Patient record was missing, create it
+        if (patient == null && userId.HasValue)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId.Value);
+            if (user != null)
+            {
+                patient = new Patient
+                {
+                    UserId = user.Id,
+                    User = user
+                };
+                _context.Patients.Add(patient);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        if (patient == null)
+            return NotFound(new { message = "Patient profile not found." });
 
         return Ok(new PatientDto
         {
@@ -57,13 +85,25 @@ public class PatientsController : ControllerBase
     public async Task<IActionResult> UpdateMyProfile([FromBody] UpdatePatientDto request)
     {
         var patientId = _currentUserService.PatientId;
-        if (!patientId.HasValue) return Forbid();
+        var userId = _currentUserService.UserId;
 
-        var patient = await _context.Patients
-            .Include(p => p.User)
-            .FirstOrDefaultAsync(p => p.Id == patientId.Value);
+        Patient? patient = null;
+        if (patientId.HasValue)
+        {
+            patient = await _context.Patients
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(p => p.Id == patientId.Value);
+        }
 
-        if (patient == null) return NotFound(new { message = "Patient profile not found." });
+        if (patient == null && userId.HasValue)
+        {
+            patient = await _context.Patients
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(p => p.UserId == userId.Value);
+        }
+
+        if (patient == null)
+            return NotFound(new { message = "Patient profile not found." });
 
         if (!string.IsNullOrWhiteSpace(request.FullName))
             patient.User.FullName = request.FullName.Trim();
