@@ -7,7 +7,6 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#x1F9B7;</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;1,500&family=Inter:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <style>
 :root{
@@ -25,7 +24,8 @@ a{color:inherit; text-decoration:none;}
 
 /* LEFT — brand panel */
 .brand{background:var(--deep); color:var(--white); position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between; padding:44px 48px;}
-#bg-canvas{position:absolute; inset:0; width:100%; height:100%; opacity:0.85;}
+.brand-img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;}
+.brand-overlay{position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, rgba(20,83,45,.55) 0%, rgba(20,83,45,.7) 100%);}
 .brand-top{position:relative; z-index:2; display:flex; align-items:center; gap:8px; font-family:'Fraunces',serif; font-size:22px;}
 .brand-top a{display:flex; align-items:center; gap:8px;}
 .brand-top span{color:#8fd6ac;}
@@ -74,7 +74,8 @@ input:focus, select:focus{outline:none; border-color:var(--green); box-shadow:0 
 
 <div class="screen">
   <div class="brand">
-    <canvas id="bg-canvas"></canvas>
+    <img src="loginpic.jpg" alt="" class="brand-img">
+    <div class="brand-overlay"></div>
     <div class="brand-top"><a href="index.html"><span>◐</span> DentaCore</a></div>
     <div class="brand-mid" id="bm">
       <div class="kicker">DENTAL PORTAL</div>
@@ -277,50 +278,6 @@ function redirectByRole(role) {
   }
 }
 
-/* Background 3D Tooth Canvas Animation */
-(function(){
-  const canvas = document.getElementById('bg-canvas');
-  if(!canvas) return;
-  const renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:true});
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-  camera.position.z = 6;
-
-  function size(){
-    const w = canvas.clientWidth, h = canvas.clientHeight;
-    renderer.setSize(w,h,false); camera.aspect = w/h; camera.updateProjectionMatrix();
-  }
-  window.addEventListener('resize', size); size();
-
-  const group = new THREE.Group(); group.position.set(2.2,-0.8,0); scene.add(group);
-  const molar = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(1.6,1),
-    new THREE.MeshStandardMaterial({color:0xffffff, roughness:0.3, transparent:true, opacity:0.15, flatShading:true})
-  );
-  group.add(molar);
-  [2.2, 2.6].forEach((r,i)=>{
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(r,0.008,8,80), new THREE.MeshBasicMaterial({color:0x8fd6ac, transparent:true, opacity:0.3}));
-    ring.rotation.x = Math.PI/2 + i*0.4;
-    group.add(ring);
-  });
-
-  const pGeo = new THREE.BufferGeometry();
-  const n=90, pos=new Float32Array(n*3);
-  for(let i=0;i<n;i++){ pos[i*3]=(Math.random()-0.5)*10; pos[i*3+1]=(Math.random()-0.5)*10; pos[i*3+2]=(Math.random()-0.5)*6; }
-  pGeo.setAttribute('position', new THREE.BufferAttribute(pos,3));
-  const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({color:0x8fd6ac, size:0.03, transparent:true, opacity:0.4}));
-  scene.add(particles);
-
-  scene.add(new THREE.AmbientLight(0xffffff,0.8));
-  const dl = new THREE.DirectionalLight(0xffffff,0.6); dl.position.set(2,3,4); scene.add(dl);
-
-  function animate(){
-    requestAnimationFrame(animate);
-    group.rotation.y += 0.003; particles.rotation.y += 0.0005;
-    renderer.render(scene,camera);
-  }
-  animate();
-})();
 </script>
 </body>
 </html>

@@ -1,340 +1,790 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>DentaCore — Dental Practice Management Portal</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#x1F9B7;</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;1,500&family=Inter:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-<style>
-:root{
-  --white:#FFFFFF; --off:#F5F5F0; --green:#1F8A55; --deep:#14532D;
-  --ink:#0D0D0D; --soft:#4A4A45; --mark:#262624;
-  padding-top:env(safe-area-inset-top,0); padding-bottom:env(safe-area-inset-bottom,0);
-  box-sizing:border-box;
-}
-*{box-sizing:border-box; margin:0; padding:0;}
-body{font-family:'Inter',sans-serif; color:var(--ink); background:var(--white); overflow-x:hidden;}
-h1,h2,h3{font-family:'Fraunces',serif; font-weight:500; line-height:1.08;}
-em{font-style:italic;}
-.mono{font-family:'Space Mono',monospace;}
-.wrap{max-width:1180px; margin:0 auto; padding:0 32px;}
-a{color:inherit; text-decoration:none;}
-section{padding:100px 0;}
-.off{background:var(--off);}
-.btn{display:inline-block; padding:13px 24px; border-radius:6px; font-weight:600; font-size:14px; transition:transform .2s ease, background 0.2s;}
-.btn:hover{transform:translateY(-2px);}
-.btn-fill{background:var(--deep); color:var(--white);}
-.btn-fill:hover{background:#166534;}
-.btn-line{border:1.5px solid var(--mark); color:var(--ink);}
-.btn-line:hover{background:#f1f5f9;}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>DentaCore — Dental Practice Management Portal</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#x1F9B7;</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;1,500&family=Inter:wght@400;500;600;700&family=Space+Mono&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <style>
+    :root {
+      --white: #FFFFFF;
+      --off: #F5F5F0;
+      --green: #1F8A55;
+      --deep: #14532D;
+      --ink: #0D0D0D;
+      --soft: #4A4A45;
+      --mark: #262624;
+      padding-top: env(safe-area-inset-top, 0);
+      padding-bottom: env(safe-area-inset-bottom, 0);
+      box-sizing: border-box;
+    }
 
-/* NAV */
-nav{position:fixed; top:0; left:0; right:0; z-index:50; padding:18px 32px; display:flex; justify-content:space-between; align-items:center; backdrop-filter:blur(10px); background:rgba(255,255,255,.9); border-bottom:1px solid #eee;}
-.logo{font-family:'Fraunces',serif; font-size:22px; font-weight:500; color:var(--mark); display:flex; align-items:center; gap:6px;}
-.logo span{color:var(--green);}
-nav .links{display:flex; gap:28px; font-size:14px; font-weight:500;}
-nav .links a{color:var(--soft); transition:color 0.15s;}
-nav .links a:hover{color:var(--deep);}
-.nav-actions{display:flex; gap:12px; align-items:center;}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-/* HERO */
-.hero{padding:160px 0 90px; display:grid; grid-template-columns:55fr 45fr; gap:40px; align-items:center;}
-.kicker{font-family:'Space Mono',monospace; font-size:13px; color:var(--green); margin-bottom:16px; letter-spacing:1px;}
-.hero h1{font-size:54px; letter-spacing:-.5px;}
-.hero p.lede{font-size:18px; color:var(--soft); max-width:460px; margin:20px 0 32px; line-height:1.6;}
-.cta-row{display:flex; gap:14px; margin-bottom:42px;}
-.stats{display:flex; gap:40px;}
-.stat b{font-family:'Fraunces',serif; font-size:28px; display:block; color:var(--deep);}
-.stat span{font-size:13px; color:var(--soft);}
-.hero-visual{position:relative; height:500px;}
-#tooth-canvas{width:100%; height:100%;}
-.float-card{position:absolute; background:var(--white); border:1px solid #e9e9e4; border-radius:8px; padding:14px 16px; box-shadow:0 12px 30px rgba(0,0,0,.08); width:210px;}
-.fc1{top:8%; left:-6%;}
-.fc2{bottom:12%; right:-4%;}
-.fc-label{font-size:11px; color:var(--soft); font-family:'Space Mono',monospace;}
-.fc-val{font-size:15px; font-weight:600; margin-top:4px;}
-.fc-dot{display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--green); margin-right:6px;}
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--ink);
+      background: var(--white);
+      overflow-x: hidden;
+    }
 
-/* HOW IT WORKS */
-.steps{display:grid; grid-template-columns:repeat(4,1fr); gap:0; margin-top:50px; border-top:1px solid #ddd;}
-.step{padding:30px 22px 0; border-right:1px solid #ddd;}
-.step:last-child{border-right:none;}
-.step .num{font-family:'Space Mono',monospace; color:var(--green); font-size:14px;}
-.step h3{font-size:19px; margin:12px 0 10px;}
-.step p{font-size:14px; color:var(--soft); line-height:1.55;}
+    h1,
+    h2,
+    h3 {
+      font-family: 'Fraunces', serif;
+      font-weight: 500;
+      line-height: 1.08;
+    }
 
-/* FEATURES */
-.feat-grid{display:grid; grid-template-columns:1.4fr 1fr; gap:24px; margin-top:50px;}
-.feat-hero{background:var(--white); border:1px solid #e9e9e4; border-radius:10px; padding:36px; grid-row:span 2;}
-.feat-hero h3{font-size:26px; margin-bottom:12px;}
-.feat-small{background:var(--white); border:1px solid #e9e9e4; border-radius:10px; padding:26px;}
-.feat-small h4{font-size:18px; margin-bottom:8px; font-weight:600;}
-.feat-icon{width:38px; height:38px; border-radius:8px; background:rgba(31,138,85,.1); color:var(--green); display:flex; align-items:center; justify-content:center; margin-bottom:14px; font-size:18px;}
-.feat p{font-size:14px; color:var(--soft); line-height:1.6;}
+    em {
+      font-style: italic;
+    }
 
-/* ROLE SWITCHER */
-.tabs{display:flex; gap:8px; margin:40px 0 30px;}
-.tab-btn{padding:10px 22px; border-radius:22px; border:1px solid #ddd; font-size:14px; font-weight:600; cursor:pointer; background:var(--white); transition:all 0.15s;}
-.tab-btn.active{background:var(--deep); color:var(--white); border-color:var(--deep);}
-.role-panel{display:none; grid-template-columns:1.2fr 1fr; gap:32px; align-items:start;}
-.role-panel.active{display:grid;}
-.checklist li{list-style:none; padding:12px 0; border-bottom:1px solid #e5e5e0; font-size:15px; display:flex; gap:10px;}
-.checklist li:before{content:"✓"; color:var(--green); font-weight:700;}
-.preview-card{background:var(--white); border:1px solid #e9e9e4; border-radius:10px; padding:26px;}
-.preview-card .mono{font-size:12px; color:var(--soft);}
-.preview-card h4{margin:10px 0 14px; font-size:19px;}
-.pill{display:inline-block; padding:4px 10px; border-radius:20px; background:rgba(31,138,85,.12); color:var(--green); font-size:12px; font-weight:600; margin-top:12px;}
+    .mono {
+      font-family: 'Space Mono', monospace;
+    }
 
-/* CTA BAND */
-.cta-band{background:var(--deep); color:var(--white); text-align:left;}
-.cta-band h2{color:var(--white); font-size:38px; max-width:600px;}
-.cta-band p{color:#cfe4d5; margin:16px 0 28px; max-width:480px; font-size:15px; line-height:1.6;}
-.cta-band .btn-fill{background:var(--white); color:var(--deep);}
-.cta-band .btn-fill:hover{background:#f1f5f9;}
-.cta-band .btn-line{border-color:#cfe4d5; color:var(--white);}
-.cta-band .btn-line:hover{background:rgba(255,255,255,0.1);}
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
 
-/* FOOTER */
-footer{padding:50px 0 30px;}
-.foot-grid{display:flex; justify-content:space-between; flex-wrap:wrap; gap:30px; border-top:1px solid #ddd; padding-top:30px; margin-top:10px;}
-.foot-col h5{font-size:13px; margin-bottom:12px; color:var(--mark);}
-.foot-col a{display:block; font-size:14px; color:var(--soft); margin-bottom:8px;}
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
 
-@media(max-width:860px){
-  .hero{grid-template-columns:1fr; padding-top:120px;}
-  .hero-visual{height:320px; margin-top:20px;}
-  .hero h1{font-size:36px;}
-  .steps,.feat-grid,.role-panel{grid-template-columns:1fr;}
-  .step{border-right:none; border-bottom:1px solid #ddd; padding-bottom:20px;}
-  .feat-hero{grid-row:auto;}
-  nav .links{display:none;}
-}
-</style>
+    section {
+      padding: 100px 0;
+    }
+
+    .off {
+      background: var(--off);
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 13px 24px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: transform .2s ease, background 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-fill {
+      background: var(--deep);
+      color: var(--white);
+    }
+
+    .btn-fill:hover {
+      background: #166534;
+    }
+
+    .btn-line {
+      border: 1.5px solid var(--mark);
+      color: var(--ink);
+    }
+
+    .btn-line:hover {
+      background: #f1f5f9;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      padding: 18px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, .9);
+      border-bottom: 1px solid #eee;
+    }
+
+    .logo {
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--mark);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .logo span {
+      color: var(--green);
+    }
+
+    nav .links {
+      display: flex;
+      gap: 28px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    nav .links a {
+      color: var(--soft);
+      transition: color 0.15s;
+    }
+
+    nav .links a:hover {
+      color: var(--deep);
+    }
+
+    .nav-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* HERO */
+    .hero-bg {
+      position: relative;
+      background: url('loginpic.jpg') center/cover no-repeat;
+    }
+
+    .hero-bg::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(235, 246, 239, .80) 0%, rgba(235, 246, 239, .50) 45%, rgba(31, 138, 85, .20) 100%);
+      pointer-events: none;
+    }
+
+    .hero-bg .hero {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero {
+      padding: 160px 0 90px;
+      display: grid;
+      grid-template-columns: 55fr 45fr;
+      gap: 40px;
+      align-items: center;
+    }
+
+    .kicker {
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      color: var(--green);
+      margin-bottom: 16px;
+      letter-spacing: 1px;
+    }
+
+    .hero h1 {
+      font-size: 54px;
+      letter-spacing: -.5px;
+    }
+
+    .hero p.lede {
+      font-size: 18px;
+      color: var(--soft);
+      max-width: 460px;
+      margin: 20px 0 32px;
+      line-height: 1.6;
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 42px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 40px;
+    }
+
+    .stat b {
+      font-family: 'Fraunces', serif;
+      font-size: 28px;
+      display: block;
+      color: var(--deep);
+    }
+
+    .stat span {
+      font-size: 13px;
+      color: var(--soft);
+    }
+
+    .hero-visual {
+      position: relative;
+      height: 500px;
+    }
+
+    .float-card {
+      position: absolute;
+      z-index: 2;
+      background: var(--white);
+      border: 1px solid #e9e9e4;
+      border-radius: 8px;
+      padding: 14px 16px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, .08);
+      width: 210px;
+    }
+
+    .fc1 {
+      top: 8%;
+      left: -6%;
+    }
+
+    .fc2 {
+      bottom: 12%;
+      right: -4%;
+    }
+
+    .fc-label {
+      font-size: 11px;
+      color: var(--soft);
+      font-family: 'Space Mono', monospace;
+    }
+
+    .fc-val {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .fc-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      margin-right: 6px;
+    }
+
+    /* HOW IT WORKS */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      margin-top: 50px;
+      border-top: 1px solid #ddd;
+    }
+
+    .step {
+      padding: 30px 22px 0;
+      border-right: 1px solid #ddd;
+    }
+
+    .step:last-child {
+      border-right: none;
+    }
+
+    .step .num {
+      font-family: 'Space Mono', monospace;
+      color: var(--green);
+      font-size: 14px;
+    }
+
+    .step h3 {
+      font-size: 19px;
+      margin: 12px 0 10px;
+    }
+
+    .step p {
+      font-size: 14px;
+      color: var(--soft);
+      line-height: 1.55;
+    }
+
+    /* FEATURES */
+    .feat-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 24px;
+      margin-top: 50px;
+    }
+
+    .feat-hero {
+      background: var(--white);
+      border: 1px solid #e9e9e4;
+      border-radius: 10px;
+      padding: 36px;
+      grid-row: span 2;
+    }
+
+    .feat-hero h3 {
+      font-size: 26px;
+      margin-bottom: 12px;
+    }
+
+    .feat-small {
+      background: var(--white);
+      border: 1px solid #e9e9e4;
+      border-radius: 10px;
+      padding: 26px;
+    }
+
+    .feat-small h4 {
+      font-size: 18px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .feat-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      background: rgba(31, 138, 85, .1);
+      color: var(--green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      font-size: 18px;
+    }
+
+    .feat p {
+      font-size: 14px;
+      color: var(--soft);
+      line-height: 1.6;
+    }
+
+    /* ROLE SWITCHER */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin: 40px 0 30px;
+    }
+
+    .tab-btn {
+      padding: 10px 22px;
+      border-radius: 22px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--white);
+      transition: all 0.15s;
+    }
+
+    .tab-btn.active {
+      background: var(--deep);
+      color: var(--white);
+      border-color: var(--deep);
+    }
+
+    .role-panel {
+      display: none;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    .role-panel.active {
+      display: grid;
+    }
+
+    .checklist li {
+      list-style: none;
+      padding: 12px 0;
+      border-bottom: 1px solid #e5e5e0;
+      font-size: 15px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .checklist li:before {
+      content: "✓";
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .preview-card {
+      background: var(--white);
+      border: 1px solid #e9e9e4;
+      border-radius: 10px;
+      padding: 26px;
+    }
+
+    .preview-card .mono {
+      font-size: 12px;
+      color: var(--soft);
+    }
+
+    .preview-card h4 {
+      margin: 10px 0 14px;
+      font-size: 19px;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(31, 138, 85, .12);
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 12px;
+    }
+
+    /* CTA BAND */
+    .cta-band {
+      background: var(--deep);
+      color: var(--white);
+      text-align: left;
+    }
+
+    .cta-band h2 {
+      color: var(--white);
+      font-size: 38px;
+      max-width: 600px;
+    }
+
+    .cta-band p {
+      color: #cfe4d5;
+      margin: 16px 0 28px;
+      max-width: 480px;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .cta-band .btn-fill {
+      background: var(--white);
+      color: var(--deep);
+    }
+
+    .cta-band .btn-fill:hover {
+      background: #f1f5f9;
+    }
+
+    .cta-band .btn-line {
+      border-color: #cfe4d5;
+      color: var(--white);
+    }
+
+    .cta-band .btn-line:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .cta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+    }
+
+    .cta-img {
+      width: 100%;
+      height: 320px;
+      object-fit: cover;
+      border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, .25);
+    }
+
+    /* FOOTER */
+    footer {
+      padding: 50px 0 30px;
+    }
+
+    .foot-grid {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 30px;
+      border-top: 1px solid #ddd;
+      padding-top: 30px;
+      margin-top: 10px;
+    }
+
+    .foot-col h5 {
+      font-size: 13px;
+      margin-bottom: 12px;
+      color: var(--mark);
+    }
+
+    .foot-col a {
+      display: block;
+      font-size: 14px;
+      color: var(--soft);
+      margin-bottom: 8px;
+    }
+
+    @media(max-width:860px) {
+      .hero {
+        grid-template-columns: 1fr;
+        padding-top: 120px;
+      }
+
+      .hero-bg::before {
+        background: rgba(235, 246, 239, .78);
+      }
+
+      .hero-visual {
+        height: 320px;
+        margin-top: 20px;
+      }
+
+      .hero h1 {
+        font-size: 36px;
+      }
+
+      .steps,
+      .feat-grid,
+      .role-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .step {
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 20px;
+      }
+
+      .feat-hero {
+        grid-row: auto;
+      }
+
+      nav .links {
+        display: none;
+      }
+
+      .cta-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cta-img {
+        height: 240px;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<nav>
-  <div class="logo"><span>◐</span> DentaCore</div>
-  <div class="links">
-    <a href="#how">How it works</a>
-    <a href="#features">Features</a>
-    <a href="#roles">Portals</a>
-  </div>
-  <div class="nav-actions">
-    <a href="login.html" class="btn btn-line" style="padding:9px 18px;">Sign in</a>
-    <a href="login.html" class="btn btn-fill" style="padding:9px 18px;">Open Portal →</a>
-  </div>
-</nav>
-
-<section class="hero wrap">
-  <div>
-    <div class="kicker" id="hk">CLINICAL DENTAL PORTAL (.NET 9)</div>
-    <h1 id="hh">Run your dental practice on one <em>calm</em> system</h1>
-    <p class="lede" id="hp">DentaCore unifies patient booking, doctor schedule approvals, clinical diagnosis notes, and QuestPDF receipts with live payment settlement.</p>
-    <div class="cta-row" id="hc">
-      <a href="login.html" class="btn btn-fill">Enter Portal</a>
-      <a href="#features" class="btn btn-line">Explore Features</a>
-    </div>
-    <div class="stats" id="hs">
-      <div class="stat"><b>100%</b><span>Automated Audit Trail</span></div>
-      <div class="stat"><b>QuestPDF</b><span>Clinical Grade Invoices</span></div>
-      <div class="stat"><b>.NET 9</b><span>Clean Architecture</span></div>
-    </div>
-  </div>
-  <div class="hero-visual">
-    <canvas id="tooth-canvas"></canvas>
-    <div class="float-card fc1" id="fc1"><div class="fc-label">Doctor Approval</div><div class="fc-val"><span class="fc-dot"></span>Dr. Amara — Confirmed</div></div>
-    <div class="float-card fc2" id="fc2"><div class="fc-label mono">RECEIPT #RCPT-20261012-0042</div><div class="fc-val">Status: PAID · $180.00</div></div>
-  </div>
-</section>
-
-<section class="off" id="how">
-  <div class="wrap">
-    <h2 style="font-size:32px;">How a visit moves through DentaCore</h2>
-    <div class="steps">
-      <div class="step"><div class="num mono">01</div><h3>Patient books</h3><p>Patients browse doctors, select dates, and pick real-time 30-min available slots.</p></div>
-      <div class="step"><div class="num mono">02</div><h3>Doctor approves</h3><p>Assigned doctor confirms visit from their queue, auto-generating a pending receipt.</p></div>
-      <div class="step"><div class="num mono">03</div><h3>Diagnosis recorded</h3><p>Doctor attaches clinical notes, condition, and prescriptions directly to the visit.</p></div>
-      <div class="step"><div class="num mono">04</div><h3>Settled & stamped</h3><p>Doctor marks payment received (Cash/Card/Online) — receipt re-stamps PAID with instant live badge.</p></div>
-    </div>
-  </div>
-</section>
-
-<section id="features">
-  <div class="wrap">
-    <h2 style="font-size:32px;">Engineered for accuracy, compliance & speed</h2>
-    <div class="feat-grid">
-      <div class="feat-hero feat">
-        <div class="feat-icon">◐</div>
-        <h3>Live payment status on every receipt</h3>
-        <p>Every generated QuestPDF invoice links directly to the clinical database. As soon as reception or the doctor confirms settlement, the receipt PDF updates and the patient's dashboard turns into a bold emerald "Payment Received" badge with instant notification.</p>
-        <div style="margin-top:24px;">
-          <a href="login.html" class="btn btn-fill">Try Interactive Demo</a>
-        </div>
-      </div>
-      <div class="feat-small feat"><div class="feat-icon">⏱️</div><h4>Slot availability engine</h4><p>Weekly recurring doctor schedules minus booked visits calculates real available slots in real time.</p></div>
-      <div class="feat-small feat"><div class="feat-icon">🔒</div><h4>Tamper-evident audit logs</h4><p>Every entity mutation is tracked via EF Core interceptors recording old values, new values, user, and IP.</p></div>
-      <div class="feat-small feat"><div class="feat-icon">📑</div><h4>QuestPDF streaming</h4><p>High-resolution clinical invoices with practice branding, doctor credentials, and payment barcodes.</p></div>
-    </div>
-  </div>
-</section>
-
-<section class="off" id="roles">
-  <div class="wrap">
-    <h2 style="font-size:32px;">Three specialized portals, one unified core</h2>
-    <div class="tabs">
-      <button class="tab-btn active" data-role="patient">Patient Portal</button>
-      <button class="tab-btn" data-role="doctor">Doctor Portal</button>
-      <button class="tab-btn" data-role="admin">Admin Portal</button>
-    </div>
-
-    <div class="role-panel active" data-panel="patient">
-      <ul class="checklist">
-        <li>Browse doctors by specialization with hourly fees and bios</li>
-        <li>Book 30-min appointment slots with double-booking prevention</li>
-        <li>View recorded diagnoses, prescriptions, and treatment notes</li>
-        <li>Download official QuestPDF receipts and track live payment status</li>
-      </ul>
-      <div class="preview-card">
-        <div class="mono">PATIENT PORTAL</div>
-        <h4>Cleaning & Checkup with Dr. Amara</h4>
-        <p style="font-size:14px;color:var(--soft);">Confirmed visit with live payment badge</p>
-        <span class="pill">Payment Received · $180.00</span>
-        <div style="margin-top:16px;">
-          <a href="login.html" class="btn btn-fill" style="padding:8px 16px; font-size:12px;">Login as Patient</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="role-panel" data-panel="doctor">
-      <ul class="checklist">
-        <li>Daily queue with Pending, Approved, Today, and Completed filters</li>
-        <li>One-click appointment approval with confirmed slot assignment</li>
-        <li>Record clinical diagnosis, notes, and prescriptions</li>
-        <li>Settle payments (Cash/Card/Online) & manage weekly availability</li>
-      </ul>
-      <div class="preview-card">
-        <div class="mono">DOCTOR QUEUE</div>
-        <h4>Pending Approval Queue</h4>
-        <p style="font-size:14px;color:var(--soft);">Review incoming patient requests & diagnose</p>
-        <span class="pill">3 appointments awaiting review</span>
-        <div style="margin-top:16px;">
-          <a href="login.html" class="btn btn-fill" style="padding:8px 16px; font-size:12px;">Login as Doctor</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="role-panel" data-panel="admin">
-      <ul class="checklist">
-        <li>Approve new doctor registrations (IsApprovedByAdmin verification)</li>
-        <li>Full practice financial reconciliation: total collected & pending revenue</li>
-        <li>System-wide appointment and patient directory with instant lookup</li>
-        <li>Tamper-evident audit logs of every database mutation with IP tracking</li>
-      </ul>
-      <div class="preview-card">
-        <div class="mono">ADMIN CONTROL</div>
-        <h4>Practice Analytics & Ledger</h4>
-        <p style="font-size:14px;color:var(--soft);">Global oversight and doctor credentialing</p>
-        <span class="pill">System Healthy · Audit Active</span>
-        <div style="margin-top:16px;">
-          <a href="login.html" class="btn btn-fill" style="padding:8px 16px; font-size:12px;">Login as Admin</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="cta-band" id="cta">
-  <div class="wrap">
-    <h2>Access the DentaCore Portal</h2>
-    <p>Sign in using our seeded accounts (Admin, Doctor, Patient) or register a new patient account to test the complete end-to-end appointment lifecycle.</p>
-    <a href="login.html" class="btn btn-fill">Sign In Now</a>
-  </div>
-</section>
-
-<footer class="off">
-  <div class="wrap">
+  <nav>
     <div class="logo"><span>◐</span> DentaCore</div>
-    <div class="foot-grid">
-      <div class="foot-col"><h5>Portals</h5><a href="patient/index.html">Patient Portal</a><a href="doctor/index.html">Doctor Portal</a><a href="admin/index.html">Admin Portal</a></div>
-      <div class="foot-col"><h5>Architecture</h5><a href="#">ASP.NET Core 9</a><a href="#">Entity Framework Core 9</a><a href="#">QuestPDF Engine</a></div>
+    <div class="links">
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#roles">Portals</a>
     </div>
-  </div>
-</footer>
+    <div class="nav-actions">
+      <a href="login.html" class="btn btn-line" style="padding:9px 18px;">Sign in</a>
+      <a href="login.html" class="btn btn-fill" style="padding:9px 18px;">Open Portal →</a>
+    </div>
+  </nav>
 
-<script>
-/* 3D tooth animation */
-(function(){
-  const canvas = document.getElementById('tooth-canvas');
-  if(!canvas) return;
-  const renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:true});
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-  camera.position.set(0,0,7);
+  <section class="hero-bg">
+    <div class="hero wrap">
+      <div>
+        <div class="kicker" id="hk">CLINICAL DENTAL PORTAL (.NET 9)</div>
+        <h1 id="hh">Run your dental practice on one <em>calm</em> system</h1>
+        <p class="lede" id="hp">DentaCore unifies patient booking, doctor schedule approvals, clinical diagnosis notes,
+          and QuestPDF receipts with live payment settlement.</p>
+        <div class="cta-row" id="hc">
+          <a href="login.html" class="btn btn-fill">Enter Portal</a>
+          <a href="#features" class="btn btn-line">Explore Features</a>
+        </div>
+        <div class="stats" id="hs">
+          <div class="stat"><b>100%</b><span>Automated Audit Trail</span></div>
+          <div class="stat"><b>QuestPDF</b><span>Clinical Grade Invoices</span></div>
+          <div class="stat"><b>.NET 9</b><span>Clean Architecture</span></div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="float-card fc1" id="fc1">
+          <div class="fc-label">Doctor Approval</div>
+          <div class="fc-val"><span class="fc-dot"></span>Dr. Amara — Confirmed</div>
+        </div>
+        <div class="float-card fc2" id="fc2">
+          <div class="fc-label mono">RECEIPT #RCPT-20261012-0042</div>
+          <div class="fc-val">Status: PAID · $180.00</div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  function size(){
-    const w = canvas.parentElement.clientWidth, h = canvas.parentElement.clientHeight;
-    renderer.setSize(w,h); camera.aspect = w/h; camera.updateProjectionMatrix();
-  }
-  size(); window.addEventListener('resize', size);
+  <section class="off" id="how">
+    <div class="wrap">
+      <h2 style="font-size:32px;">How a visit moves through DentaCore</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="num mono">01</div>
+          <h3>Patient books</h3>
+          <p>Patients browse doctors, select dates, and pick real-time 30-min available slots.</p>
+        </div>
+        <div class="step">
+          <div class="num mono">02</div>
+          <h3>Doctor approves</h3>
+          <p>Assigned doctor confirms visit from their queue, auto-generating a pending receipt.</p>
+        </div>
+        <div class="step">
+          <div class="num mono">03</div>
+          <h3>Diagnosis recorded</h3>
+          <p>Doctor attaches clinical notes, condition, and prescriptions directly to the visit.</p>
+        </div>
+        <div class="step">
+          <div class="num mono">04</div>
+          <h3>Settled & stamped</h3>
+          <p>Doctor marks payment received (Cash/Card/Online) — receipt re-stamps PAID with instant live badge.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  const group = new THREE.Group(); scene.add(group);
-  const molar = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(1.7, 1),
-    new THREE.MeshStandardMaterial({color:0xffffff, roughness:0.25, metalness:0.05, transparent:true, opacity:0.9, flatShading:true})
-  );
-  group.add(molar);
+  <section id="features">
+    <div class="wrap">
+      <h2 style="font-size:32px;">Engineered for accuracy, compliance & speed</h2>
+      <div class="feat-grid">
+        <div class="feat-hero feat">
+          <div class="feat-icon">◐</div>
+          <h3>Live payment status on every receipt</h3>
+          <p>Every generated QuestPDF invoice links directly to the clinical database. As soon as reception or the
+            doctor confirms settlement, the receipt PDF updates and the patient's dashboard turns into a bold emerald
+            "Payment Received" badge with instant notification.</p>
+          <div style="margin-top:24px;">
+            <a href="login.html" class="btn btn-fill">Try Interactive Demo</a>
+          </div>
+        </div>
+        <div class="feat-small feat">
+          <div class="feat-icon">⏱️</div>
+          <h4>Slot availability engine</h4>
+          <p>Weekly recurring doctor schedules minus booked visits calculates real available slots in real time.</p>
+        </div>
+        <div class="feat-small feat">
+          <div class="feat-icon">🔒</div>
+          <h4>Tamper-evident audit logs</h4>
+          <p>Every entity mutation is tracked via EF Core interceptors recording old values, new values, user, and IP.
+          </p>
+        </div>
+        <div class="feat-small feat">
+          <div class="feat-icon">📑</div>
+          <h4>QuestPDF streaming</h4>
+          <p>High-resolution clinical invoices with practice branding, doctor credentials, and payment barcodes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  [2.4, 2.9].forEach((r,i)=>{
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(r, 0.01, 8, 80), new THREE.MeshBasicMaterial({color:0x1F8A55, transparent:true, opacity:0.4}));
-    ring.rotation.x = Math.PI/2 + i*0.3; ring.rotation.y = i*0.5;
-    group.add(ring);
-  });
+  <section class="off" id="roles">
+    <div class="wrap">
+      <h2 style="font-size:32px;">Three specialized portals, one unified core</h2>
+      <div class="tabs">
+        <button class="tab-btn active" data-role="patient">Patient Portal</button>
+        <button class="tab-btn" data-role="doctor">Doctor Portal</button>
+        <button class="tab-btn" data-role="admin">Admin Portal</button>
+      </div>
 
-  const pGeo = new THREE.BufferGeometry();
-  const pCount = 120, pos = new Float32Array(pCount*3);
-  for(let i=0;i<pCount;i++){
-    pos[i*3]=(Math.random()-0.5)*9; pos[i*3+1]=(Math.random()-0.5)*9; pos[i*3+2]=(Math.random()-0.5)*9;
-  }
-  pGeo.setAttribute('position', new THREE.BufferAttribute(pos,3));
-  const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({color:0x1F8A55, size:0.035, transparent:true, opacity:0.5}));
-  scene.add(particles);
+      <div class="role-panel active" data-panel="patient">
+        <ul class="checklist">
+          <li>Browse doctors by specialization with hourly fees and bios</li>
+          <li>Book 30-min appointment slots with double-booking prevention</li>
+          <li>View recorded diagnoses, prescriptions, and treatment notes</li>
+          <li>Download official QuestPDF receipts and track live payment status</li>
+        </ul>
+        <div class="preview-card">
+          <div class="mono">PATIENT PORTAL</div>
+          <h4>Cleaning & Checkup with Dr. Amara</h4>
+          <p style="font-size:14px;color:var(--soft);">Confirmed visit with live payment badge</p>
+          <span class="pill">Payment Received · $180.00</span>
+          <div style="margin-top:16px;">
+            <a href="login.html" class="btn btn-fill" style="padding:8px 16px; font-size:12px;">Login as Patient</a>
+          </div>
+        </div>
+      </div>
 
-  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-  const dl = new THREE.DirectionalLight(0xffffff, 0.9); dl.position.set(3,4,5); scene.add(dl);
+      <div class="role-panel" data-panel="doctor">
+        <ul class="checklist">
+          <li>Daily queue with Pending, Approved, Today, and Completed filters</li>
+          <li>One-click appointment approval with confirmed slot assignment</li>
+          <li>Record clinical diagnosis, notes, and prescriptions</li>
+          <li>Settle payments (Cash/Card/Online) & manage weekly availability</li>
+        </ul>
+        <div class="preview-card">
+          <div class="mono">DOCTOR QUEUE</div>
+          <h4>Pending Approval Queue</h4>
+          <p style="font-size:14px;color:var(--soft);">Review incoming patient requests & diagnose</p>
+          <span class="pill">3 appointments awaiting review</span>
+          <div style="margin-top:16px;">
+            <a href="login.html" class="btn btn-fill" style="padding:8px 16px; font-size:12px;">Login as Doctor</a>
+          </div>
+        </div>
+      </div>
 
-  let mx=0, my=0;
-  window.addEventListener('mousemove', e=>{
-    mx = (e.clientX/window.innerWidth - 0.5); my = (e.clientY/window.innerHeight - 0.5);
-  });
+      <div class="role-panel" data-panel="admin">
+        <ul class="checklist">
+          <li>Approve new doctor registrations (IsApprovedByAdmin verification)</li>
+          <li>Full practice financial reconciliation: total collected & pending revenue</li>
+          <li>System-wide appointment and patient directory with instant lookup</li>
+          <li>Tamper-evident audit logs of every database mutation with IP tracking</li>
+        </ul>
+        <div class="preview-card">
+          <div class="mono">ADMIN CONTROL</div>
+          <h4>Practice Analytics & Ledger</h4>
+          <p style="font-size:14px;color:var(--soft);">Global oversight and doctor credentialing</p>
+          <span class="pill">System Healthy · Audit Active</span>
+          <div style="margin-top:16px;">
+            <a href="login.html" class="btn btn-fill" style="padding:8px 16px; font-size:12px;">Login as Admin</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  function animate(){
-    requestAnimationFrame(animate);
-    group.rotation.y += 0.004;
-    group.rotation.x = Math.sin(Date.now()*0.0003)*0.15;
-    particles.rotation.y += 0.0006;
-    camera.position.x += (mx*1.2 - camera.position.x)*0.03;
-    camera.position.y += (-my*1.2 - camera.position.y)*0.03;
-    camera.lookAt(0,0,0);
-    renderer.render(scene, camera);
-  }
-  animate();
-})();
+  <section class="cta-band" id="cta">
+    <div class="wrap cta-grid">
+      <div class="cta-text">
+        <h2>Access the DentaCore Portal</h2>
+        <p>Sign in using our seeded accounts (Admin, Doctor, Patient) or register a new patient account to test the
+          complete end-to-end appointment lifecycle.</p>
+        <a href="login.html" class="btn btn-fill">Sign In Now</a>
+      </div>
+      <img src="D:\DentalCore\frontend\DSC00852.jpg" alt="DentaCore portal" class="cta-img">
+    </div>
+  </section>
 
-/* role tabs */
-document.querySelectorAll('.tab-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.role-panel').forEach(p=>p.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelector(`.role-panel[data-panel="${btn.dataset.role}"]`).classList.add('active');
-  });
-});
-</script>
+  <footer class="off">
+    <div class="wrap">
+      <div class="logo"><span>◐</span> DentaCore</div>
+      <div class="foot-grid">
+        <div class="foot-col">
+          <h5>Portals</h5><a href="patient/index.html">Patient Portal</a><a href="doctor/index.html">Doctor Portal</a><a
+            href="admin/index.html">Admin Portal</a>
+        </div>
+        <div class="foot-col">
+          <h5>Architecture</h5><a href="#">ASP.NET Core 9</a><a href="#">Entity Framework Core 9</a><a href="#">QuestPDF
+            Engine</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* role tabs */
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.role-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelector(`.role-panel[data-panel="${btn.dataset.role}"]`).classList.add('active');
+      });
+    });
+  </script>
 </body>
+
 </html>
