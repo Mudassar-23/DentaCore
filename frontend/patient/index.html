@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Patient Portal — DentaCore</title>
+<title>Patient Portal ï¿½ DentaCore</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#x1F9B7;</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;1,500&family=Inter:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
@@ -215,12 +215,12 @@ th{background:#F8FAFC; color:var(--soft); font-size:12px; font-weight:600; text-
 <script>
 const API_BASE = window.location.origin;
 
-// Safely parse JSON — guards against Cloudflare/proxy HTML error pages
+// Safely parse JSON ï¿½ guards against Cloudflare/proxy HTML error pages
 async function safeJson(res) {
   const ct = res.headers.get('content-type') || '';
   if (!ct.includes('application/json') && !ct.includes('application/problem+json')) {
     const text = await res.text();
-    throw new Error(Server error (HTTP ${res.status}). API may be unreachable. ${text.slice(0, 120)});
+    throw new Error(`Server error (HTTP ${res.status}). API may be unreachable. ${text.slice(0, 120)}`);
   }
   return res.json();
 }
@@ -283,7 +283,7 @@ async function loadDoctors() {
     box.innerHTML = doctors.map((d, i) => `
       <div class="doc-card ${i === 0 ? 'selected' : ''}" onclick="selectDoctor('${d.id}', this)">
         <div class="doc-name">Dr. ${d.fullName}</div>
-        <div class="doc-spec">${d.specialization} · ${d.experienceYears} yrs exp.</div>
+        <div class="doc-spec">${d.specialization} ï¿½ ${d.experienceYears} yrs exp.</div>
         <div style="font-size:12px; color:var(--soft); margin-top:4px;">${d.bio || ''}</div>
         <div class="doc-fee">Consultation Fee: $${d.consultationFee.toFixed(2)}</div>
       </div>

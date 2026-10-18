@@ -294,12 +294,12 @@ th{background:#F8FAFC; color:var(--soft); font-size:12px; font-weight:600; text-
 <script>
 const API_BASE = window.location.origin;
 
-// Safely parse JSON — guards against Cloudflare/proxy HTML error pages
+// Safely parse JSON ï¿½ guards against Cloudflare/proxy HTML error pages
 async function safeJson(res) {
   const ct = res.headers.get('content-type') || '';
   if (!ct.includes('application/json') && !ct.includes('application/problem+json')) {
     const text = await res.text();
-    throw new Error(Server error (HTTP ${res.status}). API may be unreachable. ${text.slice(0, 120)});
+    throw new Error(`Server error (HTTP ${res.status}). API may be unreachable. ${text.slice(0, 120)}`);
   }
   return res.json();
 }
