@@ -139,7 +139,7 @@ public class AuthController : ControllerBase
         });
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetMe), new LoginResponseDto
+        var registerResponse = new LoginResponseDto
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken,
@@ -153,7 +153,8 @@ public class AuthController : ControllerBase
                 Role = user.Role.ToString(),
                 ProfileId = patient.Id
             }
-        });
+        };
+        return StatusCode(StatusCodes.Status201Created, registerResponse);
     }
 
     [HttpPost("register-doctor")]

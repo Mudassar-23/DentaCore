@@ -159,6 +159,17 @@ input:focus, select:focus{outline:none; border-color:var(--green); box-shadow:0 
 <script>
 const API_BASE = window.location.origin;
 
+// Safe JSON parser: guards against Cloudflare/proxy returning HTML error pages
+// instead of JSON (which causes "Unexpected end of JSON input").
+async function safeJson(res) {
+  const ct = res.headers.get('content-type') || '';
+  if (!ct.includes('application/json') && !ct.includes('application/problem+json')) {
+    const text = await res.text();
+    throw new Error(`Server error (HTTP ${res.status}). The API may be unreachable or misconfigured. Response: ${text.slice(0, 120)}`);
+  }
+  return res.json();
+}
+
 function switchAuthMode(mode) {
   const isSignIn = mode === 'signin';
   document.getElementById('tabSignIn').classList.toggle('active', isSignIn);
@@ -197,7 +208,7 @@ async function handleSignIn(e) {
       body: JSON.stringify({ email, password })
     });
 
-    const data = await res.json();
+    const data = await safeJson(res);
     if (!res.ok) {
       throw new Error(data.message || 'Login failed. Please check your credentials.');
     }
@@ -247,7 +258,7 @@ async function handleRegister(e) {
       })
     });
 
-    const data = await res.json();
+    const data = await safeJson(res);
     if (!res.ok) {
       throw new Error(data.message || 'Registration failed.');
     }
