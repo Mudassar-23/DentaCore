@@ -254,6 +254,16 @@ th{background:#F8FAFC; color:var(--soft); font-size:12px; font-weight:600; text-
 
 <script>
 const API_BASE = window.location.origin;
+
+// Safely parse JSON — guards against Cloudflare/proxy HTML error pages
+async function safeJson(res) {
+  const ct = res.headers.get('content-type') || '';
+  if (!ct.includes('application/json') && !ct.includes('application/problem+json')) {
+    const text = await res.text();
+    throw new Error(Server error (HTTP ${res.status}). API may be unreachable. ${text.slice(0, 120)});
+  }
+  return res.json();
+}
 let currentApptId = null;
 let currentFilterStatus = null;
 
@@ -400,11 +410,11 @@ async function loadQueue() {
     if (!res) return;
 
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
+      const err = await safeJson(res).catch(() => ({}));
       throw new Error(err.message || `Failed to load appointments queue (HTTP ${res.status}).`);
     }
 
-    const data = await res.json();
+    const data = await safeJson(res);
     const list = Array.isArray(data) ? data : [];
 
     // Update KPIs
@@ -509,7 +519,7 @@ async function submitApprove() {
     });
     if (!res) return;
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
+      const err = await safeJson(res).catch(() => ({}));
       throw new Error(err.message || 'Failed to approve appointment.');
     }
     closeModal('modalApprove');
@@ -532,7 +542,7 @@ async function submitReject() {
     });
     if (!res) return;
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
+      const err = await safeJson(res).catch(() => ({}));
       throw new Error(err.message || 'Failed to reject appointment.');
     }
     closeModal('modalReject');
@@ -557,7 +567,7 @@ async function submitDiagnosis() {
     });
     if (!res) return;
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
+      const err = await safeJson(res).catch(() => ({}));
       throw new Error(err.message || 'Failed to save diagnosis.');
     }
     closeModal('modalDiagnosis');
@@ -592,7 +602,7 @@ async function submitPayment() {
     });
     if (!res) return;
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
+      const err = await safeJson(res).catch(() => ({}));
       throw new Error(err.message || 'Payment settlement failed.');
     }
     closeModal('modalPayment');
@@ -615,10 +625,10 @@ async function loadPatients() {
     const res = await authFetch(`${API_BASE}/api/v1/doctors/me/patients`);
     if (!res) return;
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
+      const err = await safeJson(res).catch(() => ({}));
       throw new Error(err.message || `Failed to load patients (HTTP ${res.status}).`);
     }
-    const data = await res.json();
+    const data = await safeJson(res);
     const patients = Array.isArray(data) ? data : [];
     document.getElementById('kpiPatients').innerText = patients.length;
 
@@ -668,10 +678,10 @@ async function loadSchedule() {
     const res = await authFetch(`${API_BASE}/api/v1/doctors/me/schedule`);
     if (!res) return;
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
+      const err = await safeJson(res).catch(() => ({}));
       throw new Error(err.message || `Failed to load schedule (HTTP ${res.status}).`);
     }
-    const data = await res.json();
+    const data = await safeJson(res);
     const schedules = Array.isArray(data) ? data : [];
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -719,7 +729,7 @@ async function saveDoctorSchedule() {
     });
     if (!res) return;
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
+      const err = await safeJson(res).catch(() => ({}));
       throw new Error(err.message || 'Failed to update schedule.');
     }
     showMsg('Clinic schedule updated successfully.');
@@ -735,10 +745,10 @@ async function loadLogs() {
     const res = await authFetch(`${API_BASE}/api/v1/audit-logs/doctor/me`);
     if (!res) return;
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
+      const err = await safeJson(res).catch(() => ({}));
       throw new Error(err.message || `Failed to load audit logs (HTTP ${res.status}).`);
     }
-    const data = await res.json();
+    const data = await safeJson(res);
     const logs = Array.isArray(data) ? data : [];
 
     if (!logs.length) {

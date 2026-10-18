@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -214,6 +214,16 @@ th{background:#F8FAFC; color:var(--soft); font-size:12px; font-weight:600; text-
 
 <script>
 const API_BASE = window.location.origin;
+
+// Safely parse JSON — guards against Cloudflare/proxy HTML error pages
+async function safeJson(res) {
+  const ct = res.headers.get('content-type') || '';
+  if (!ct.includes('application/json') && !ct.includes('application/problem+json')) {
+    const text = await res.text();
+    throw new Error(`Server error (HTTP ${res.status}). API may be unreachable. ${text.slice(0, 120)}`);
+  }
+  return res.json();
+}
 let selectedDoctorId = null;
 let selectedSlotIso = null;
 
@@ -262,7 +272,7 @@ function switchTab(tabId) {
 async function loadDoctors() {
   try {
     const res = await fetch(`${API_BASE}/api/v1/doctors`);
-    const doctors = await res.json();
+    const doctors = await safeJson(res);
     const box = document.getElementById('doctorList');
 
     if (!doctors.length) {
@@ -306,7 +316,7 @@ async function loadDoctorAvailability() {
 
   try {
     const res = await fetch(`${API_BASE}/api/v1/doctors/${selectedDoctorId}/availability?date=${dateVal}`);
-    const slots = await res.json();
+    const slots = await safeJson(res);
 
     if (!slots.length) {
       box.innerHTML = '<p style="font-size:13px; color:var(--amber);">Doctor has no scheduled clinic hours on this date. Please choose another date (Mon-Fri).</p>';
@@ -355,7 +365,7 @@ async function submitBooking() {
       })
     });
 
-    const data = await res.json();
+    const data = await safeJson(res);
     if (!res.ok) throw new Error(data.message || 'Booking failed.');
 
     showMsg('Appointment booked successfully! It has been placed in the doctor\'s approval queue.');
@@ -378,7 +388,7 @@ async function loadMyAppointments() {
     const res = await fetch(`${API_BASE}/api/v1/appointments/me`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const list = await res.json();
+    const list = await safeJson(res);
 
     if (!list.length) {
       container.innerHTML = '<p style="color:var(--soft); padding:16px 0;">You have no appointments yet. Use the "Book Appointment" tab to schedule your first visit.</p>';
@@ -478,7 +488,7 @@ async function loadMyReceipts() {
     const res = await fetch(`${API_BASE}/api/v1/receipts/me`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const list = await res.json();
+    const list = await safeJson(res);
 
     if (!list.length) {
       container.innerHTML = '<p style="color:var(--soft); padding:16px 0;">No receipts generated yet. Receipts are prepared once a doctor approves your visit.</p>';
@@ -532,7 +542,7 @@ async function loadProfile() {
     const res = await fetch(`${API_BASE}/api/v1/patients/me`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const p = await res.json();
+    const p = await safeJson(res);
     document.getElementById('profName').value = p.fullName || '';
     document.getElementById('profPhone').value = p.phoneNumber || '';
     document.getElementById('profDob').value = p.dateOfBirth || '';

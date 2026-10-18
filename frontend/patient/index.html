@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Patient Portal — DentaCore</title>
+<title>Patient Portal � DentaCore</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#x1F9B7;</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;1,500&family=Inter:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
@@ -91,7 +91,7 @@ th{background:#F8FAFC; color:var(--soft); font-size:12px; font-weight:600; text-
 <body>
 
 <header>
-  <div class="logo"><a href="../index.html"><span>◐</span> DentaCore</a></div>
+  <div class="logo"><a href="../index.html"><span>?</span> DentaCore</a></div>
   <div class="user-bar">
     <div id="patientGreet" style="font-size:14px; font-weight:500;">Welcome, Patient</div>
     <span class="user-badge">PATIENT</span>
@@ -103,10 +103,10 @@ th{background:#F8FAFC; color:var(--soft); font-size:12px; font-weight:600; text-
   <div id="statusAlert" class="alert"></div>
 
   <div class="tabs-nav">
-    <button class="tab-link active" onclick="switchTab('booking')">📅 Book Appointment</button>
-    <button class="tab-link" onclick="switchTab('appointments')">📋 My Appointments</button>
-    <button class="tab-link" onclick="switchTab('receipts')">💳 Invoices & Receipts</button>
-    <button class="tab-link" onclick="switchTab('profile')">👤 Health Profile</button>
+    <button class="tab-link active" onclick="switchTab('booking')">?? Book Appointment</button>
+    <button class="tab-link" onclick="switchTab('appointments')">?? My Appointments</button>
+    <button class="tab-link" onclick="switchTab('receipts')">?? Invoices & Receipts</button>
+    <button class="tab-link" onclick="switchTab('profile')">?? Health Profile</button>
   </div>
 
   <!-- TAB 1: BOOK APPOINTMENT -->
@@ -147,7 +147,7 @@ th{background:#F8FAFC; color:var(--soft); font-size:12px; font-weight:600; text-
     <div class="card">
       <div class="card-title">
         <span>My Visit Queue & Status</span>
-        <button class="btn btn-outline btn-sm" onclick="loadMyAppointments()">↻ Refresh</button>
+        <button class="btn btn-outline btn-sm" onclick="loadMyAppointments()">? Refresh</button>
       </div>
       <div id="appointmentsTableContainer">Loading appointments...</div>
     </div>
@@ -158,7 +158,7 @@ th{background:#F8FAFC; color:var(--soft); font-size:12px; font-weight:600; text-
     <div class="card">
       <div class="card-title">
         <span>Receipts & Settled Invoices</span>
-        <button class="btn btn-outline btn-sm" onclick="loadMyReceipts()">↻ Refresh</button>
+        <button class="btn btn-outline btn-sm" onclick="loadMyReceipts()">? Refresh</button>
       </div>
       <div id="receiptsTableContainer">Loading receipts...</div>
     </div>
@@ -214,6 +214,16 @@ th{background:#F8FAFC; color:var(--soft); font-size:12px; font-weight:600; text-
 
 <script>
 const API_BASE = window.location.origin;
+
+// Safely parse JSON � guards against Cloudflare/proxy HTML error pages
+async function safeJson(res) {
+  const ct = res.headers.get('content-type') || '';
+  if (!ct.includes('application/json') && !ct.includes('application/problem+json')) {
+    const text = await res.text();
+    throw new Error(Server error (HTTP ${res.status}). API may be unreachable. ${text.slice(0, 120)});
+  }
+  return res.json();
+}
 let selectedDoctorId = null;
 let selectedSlotIso = null;
 
@@ -262,7 +272,7 @@ function switchTab(tabId) {
 async function loadDoctors() {
   try {
     const res = await fetch(`${API_BASE}/api/v1/doctors`);
-    const doctors = await res.json();
+    const doctors = await safeJson(res);
     const box = document.getElementById('doctorList');
 
     if (!doctors.length) {
@@ -273,7 +283,7 @@ async function loadDoctors() {
     box.innerHTML = doctors.map((d, i) => `
       <div class="doc-card ${i === 0 ? 'selected' : ''}" onclick="selectDoctor('${d.id}', this)">
         <div class="doc-name">Dr. ${d.fullName}</div>
-        <div class="doc-spec">${d.specialization} · ${d.experienceYears} yrs exp.</div>
+        <div class="doc-spec">${d.specialization} � ${d.experienceYears} yrs exp.</div>
         <div style="font-size:12px; color:var(--soft); margin-top:4px;">${d.bio || ''}</div>
         <div class="doc-fee">Consultation Fee: $${d.consultationFee.toFixed(2)}</div>
       </div>
@@ -306,7 +316,7 @@ async function loadDoctorAvailability() {
 
   try {
     const res = await fetch(`${API_BASE}/api/v1/doctors/${selectedDoctorId}/availability?date=${dateVal}`);
-    const slots = await res.json();
+    const slots = await safeJson(res);
 
     if (!slots.length) {
       box.innerHTML = '<p style="font-size:13px; color:var(--amber);">Doctor has no scheduled clinic hours on this date. Please choose another date (Mon-Fri).</p>';
@@ -355,7 +365,7 @@ async function submitBooking() {
       })
     });
 
-    const data = await res.json();
+    const data = await safeJson(res);
     if (!res.ok) throw new Error(data.message || 'Booking failed.');
 
     showMsg('Appointment booked successfully! It has been placed in the doctor\'s approval queue.');
@@ -378,7 +388,7 @@ async function loadMyAppointments() {
     const res = await fetch(`${API_BASE}/api/v1/appointments/me`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const list = await res.json();
+    const list = await safeJson(res);
 
     if (!list.length) {
       container.innerHTML = '<p style="color:var(--soft); padding:16px 0;">You have no appointments yet. Use the "Book Appointment" tab to schedule your first visit.</p>';
@@ -409,7 +419,7 @@ async function loadMyAppointments() {
             let payBadge = `<span style="color:var(--soft); font-size:12px;">N/A</span>`;
             if (a.receiptId) {
               if (a.paymentStatus === 'Paid') {
-                payBadge = `<span class="badge badge-paid">✓ PAID ($${a.consultationFee.toFixed(2)})</span>`;
+                payBadge = `<span class="badge badge-paid">? PAID ($${a.consultationFee.toFixed(2)})</span>`;
               } else {
                 payBadge = `<span class="badge badge-pending">PENDING ($${a.consultationFee.toFixed(2)})</span>`;
               }
@@ -419,13 +429,13 @@ async function loadMyAppointments() {
             let diagInfo = '-';
             if (a.diagnoses && a.diagnoses.length > 0) {
               const d = a.diagnoses[0];
-              diagInfo = `<b>${d.diseaseName}</b><br><small style="color:var(--soft);">${d.notes || ''} ${d.prescription ? '💊 ' + d.prescription : ''}</small>`;
+              diagInfo = `<b>${d.diseaseName}</b><br><small style="color:var(--soft);">${d.notes || ''} ${d.prescription ? '?? ' + d.prescription : ''}</small>`;
             }
 
             // Action buttons
             let actions = [];
             if (a.receiptId) {
-              actions.push(`<button class="btn btn-outline btn-sm" onclick="downloadReceipt('${a.id}')">📄 PDF Receipt</button>`);
+              actions.push(`<button class="btn btn-outline btn-sm" onclick="downloadReceipt('${a.id}')">?? PDF Receipt</button>`);
             }
             if (a.status === 'Pending') {
               actions.push(`<button class="btn btn-danger btn-sm" onclick="cancelAppointment('${a.id}')">Cancel</button>`);
@@ -478,7 +488,7 @@ async function loadMyReceipts() {
     const res = await fetch(`${API_BASE}/api/v1/receipts/me`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const list = await res.json();
+    const list = await safeJson(res);
 
     if (!list.length) {
       container.innerHTML = '<p style="color:var(--soft); padding:16px 0;">No receipts generated yet. Receipts are prepared once a doctor approves your visit.</p>';
@@ -514,7 +524,7 @@ async function loadMyReceipts() {
                 ${r.paymentMethod ? `${r.paymentMethod} (Ref: ${r.transactionRef || '-'})` : 'Awaiting settlement'}
               </td>
               <td>
-                <button class="btn btn-primary btn-sm" onclick="downloadReceipt('${r.appointmentId}')">⬇ Download PDF</button>
+                <button class="btn btn-primary btn-sm" onclick="downloadReceipt('${r.appointmentId}')">? Download PDF</button>
               </td>
             </tr>
           `).join('')}
@@ -532,7 +542,7 @@ async function loadProfile() {
     const res = await fetch(`${API_BASE}/api/v1/patients/me`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const p = await res.json();
+    const p = await safeJson(res);
     document.getElementById('profName').value = p.fullName || '';
     document.getElementById('profPhone').value = p.phoneNumber || '';
     document.getElementById('profDob').value = p.dateOfBirth || '';

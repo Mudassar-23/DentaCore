@@ -294,6 +294,16 @@ th{background:#F8FAFC; color:var(--soft); font-size:12px; font-weight:600; text-
 <script>
 const API_BASE = window.location.origin;
 
+// Safely parse JSON — guards against Cloudflare/proxy HTML error pages
+async function safeJson(res) {
+  const ct = res.headers.get('content-type') || '';
+  if (!ct.includes('application/json') && !ct.includes('application/problem+json')) {
+    const text = await res.text();
+    throw new Error(Server error (HTTP ${res.status}). API may be unreachable. ${text.slice(0, 120)});
+  }
+  return res.json();
+}
+
 const token = localStorage.getItem('dentacore_token');
 const userStr = localStorage.getItem('dentacore_user');
 if (!token || !userStr) {
@@ -457,7 +467,7 @@ async function loadKpis() {
   try {
     const res = await authFetch(`${API_BASE}/api/v1/admin/stats`);
     if (!res || !res.ok) return;
-    const s = await res.json();
+    const s = await safeJson(res);
     
     document.getElementById('kpiRevenue').innerText = `$${(s.totalRevenue || 0).toFixed(2)}`;
     document.getElementById('kpiPendingRev').innerText = `$${(s.pendingRevenue || 0).toFixed(2)}`;
@@ -483,7 +493,7 @@ async function loadDoctors() {
     const res = await authFetch(`${API_BASE}/api/v1/admin/doctors`);
     if (!res) return;
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
+    const data = await safeJson(res);
     const docs = Array.isArray(data) ? data : [];
     loadKpis();
 
@@ -578,7 +588,7 @@ async function loadAppointments() {
     const res = await authFetch(`${API_BASE}/api/v1/appointments`);
     if (!res) return;
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
+    const data = await safeJson(res);
     allAppointmentsCache = Array.isArray(data) ? data : [];
     loadKpis();
     renderAppointmentsTable();
@@ -664,7 +674,7 @@ async function submitAdminApprove() {
     });
     if (!res) return;
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
+      const err = await safeJson(res).catch(() => ({}));
       throw new Error(err.message || 'Approval failed.');
     }
     closeModal('modalAdminApprove');
@@ -694,7 +704,7 @@ async function submitAdminReject() {
     });
     if (!res) return;
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
+      const err = await safeJson(res).catch(() => ({}));
       throw new Error(err.message || 'Decline failed.');
     }
     closeModal('modalAdminReject');
@@ -712,7 +722,7 @@ async function loadPatients() {
     const res = await authFetch(`${API_BASE}/api/v1/patients`);
     if (!res) return;
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
+    const data = await safeJson(res);
     allPatientsCache = Array.isArray(data) ? data : [];
     loadKpis();
     renderPatientsTable(allPatientsCache);
@@ -801,7 +811,7 @@ async function loadReceipts() {
     const res = await authFetch(`${API_BASE}/api/v1/receipts`);
     if (!res) return;
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
+    const data = await safeJson(res);
     allReceiptsCache = data.receipts || [];
     loadKpis();
     renderFinancialsTable(data);
@@ -897,7 +907,7 @@ async function submitAdminPayment() {
     });
     if (!res) return;
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
+      const err = await safeJson(res).catch(() => ({}));
       throw new Error(err.message || 'Payment settlement failed.');
     }
     closeModal('modalAdminPayment');
@@ -916,7 +926,7 @@ async function loadAuditLogs() {
     const res = await authFetch(`${API_BASE}/api/v1/audit-logs`);
     if (!res) return;
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
+    const data = await safeJson(res);
     const logs = Array.isArray(data) ? data : [];
 
     if (!logs.length) {
