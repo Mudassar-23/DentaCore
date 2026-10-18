@@ -287,6 +287,21 @@ if (!user || user.role !== 'Doctor') {
 }
 document.getElementById('doctorGreet').innerText = user ? user.fullName : 'Doctor';
 
+// Cross-tab synchronization: detect if another tab logged into a different role
+window.addEventListener('storage', (e) => {
+  if (e.key === 'dentacore_user' && e.newValue) {
+    try {
+      const u = JSON.parse(e.newValue);
+      if (!u || u.role !== 'Doctor') {
+        alert('Session switched to ' + (u ? u.role : 'another user') + ' in another tab. Redirecting to login...');
+        window.location.href = '../login.html';
+      }
+    } catch (_) {
+      window.location.href = '../login.html';
+    }
+  }
+});
+
 function logout() {
   localStorage.clear();
   window.location.href = '../login.html';
@@ -307,6 +322,21 @@ async function authFetch(url, options = {}) {
     return null;
   }
 
+  // Cross-tab session guard: ensure token in localStorage has not been overwritten by another role
+  const activeUserStr = localStorage.getItem('dentacore_user');
+  try {
+    const activeUser = JSON.parse(activeUserStr);
+    if (!activeUser || activeUser.role !== 'Doctor') {
+      alert('Your session was switched to ' + (activeUser ? activeUser.role : 'another role') + ' in another tab. Please sign in as Doctor.');
+      window.location.href = '../login.html';
+      return null;
+    }
+  } catch (e) {
+    localStorage.clear();
+    window.location.href = '../login.html';
+    return null;
+  }
+
   const defaultHeaders = {
     'Authorization': `Bearer ${currentToken}`
   };
@@ -318,6 +348,13 @@ async function authFetch(url, options = {}) {
     res = await fetch(url, options);
   } catch (netErr) {
     throw new Error('Network error or server unreachable: ' + netErr.message);
+  }
+
+  if (res.status === 403) {
+    alert('Access denied (HTTP 403): Your active session does not have Doctor permissions. Please sign in as Doctor.');
+    localStorage.clear();
+    window.location.href = '../login.html';
+    return null;
   }
 
   if (res.status === 401) {
